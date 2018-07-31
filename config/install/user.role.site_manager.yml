@@ -1,0 +1,36 @@
+langcode: en
+status: true
+dependencies: {  }
+id: site_manager
+label: 'Site Manager'
+weight: 3
+is_admin: null
+permissions:
+  - 'access administration pages'
+  - 'access content overview'
+  - 'access files overview'
+  - 'access site in maintenance mode'
+  - 'access site reports'
+  - 'access toolbar'
+  - 'access user profiles'
+  - 'administer account settings'
+  - 'administer blocks'
+  - 'administer content types'
+  - 'administer filters'
+  - 'administer menu'
+  - 'administer modules'
+  - 'administer nodes'
+  - 'administer permissions'
+  - 'administer site configuration'
+  - 'administer themes'
+  - 'administer users'
+  - 'bypass node access'
+  - 'cancel account'
+  - 'change own username'
+  - 'delete all revisions'
+  - 'link to any page'
+  - 'revert all revisions'
+  - 'select account cancellation method'
+  - 'view all revisions'
+  - 'view own unpublished content'
+  - 'view the administration theme'

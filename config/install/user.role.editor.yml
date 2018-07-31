@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies: {  }
+id: editor
+label: Editor
+weight: 4
+is_admin: null
+permissions:
+  - 'access administration pages'
+  - 'access content overview'
+  - 'access toolbar'
+  - 'administer nodes'
+  - 'bypass node access'
+  - 'delete all revisions'
+  - 'link to any page'
+  - 'revert all revisions'
+  - 'view all revisions'
+  - 'view own unpublished content'
+  - 'view the administration theme'
