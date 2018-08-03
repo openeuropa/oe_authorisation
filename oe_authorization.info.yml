@@ -1,5 +1,0 @@
-name: OpenEuropa Authorization
-description: User authorization features for the OpenEuropa project.
-package: OpenEuropa
-type: module
-core: 8.x

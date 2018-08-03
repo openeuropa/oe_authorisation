@@ -1,12 +1,12 @@
 workspace:
   base: /test
-  path: oe_authorization
+  path: oe_authorisation
 
 services:
   web:
     image: fpfis/httpd-php-dev:7.1
     environment:
-      - DOCUMENT_ROOT=/test/oe_authorization
+      - DOCUMENT_ROOT=/test/oe_authorisation
   mysql:
     image: percona/percona-server:5.6
     environment:

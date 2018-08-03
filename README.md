@@ -1,6 +1,6 @@
 # OpenEuropa Authorization
 
-The OpenEuropa Authorization module offers default features related to user authorization for the OpenEuropa project.
+The OpenEuropa Authorization module offers default features related to user authorisation for the OpenEuropa project.
 
 **Table of contents:**
 
@@ -20,7 +20,7 @@ In your Drupal project's main `composer.json` add the following dependency:
 ```json
 {
     "require": {
-        "openeuropa/oe_authorization": "dev-master"
+        "openeuropa/oe_authorisation": "dev-master"
     }
 }
 ```
@@ -36,7 +36,7 @@ $ composer update
 In order to enable the module in your project run:
 
 ```
-$ ./vendor/bin/drush en oe_authorization
+$ ./vendor/bin/drush en oe_authorisation
 ```
 
 ## Development
@@ -70,7 +70,7 @@ $ ./vendor/bin/run drupal:site-setup
 
 This will:
 
-- Symlink the module in  `./build/modules/custom/oe_authorization` so that it's available for the test site
+- Symlink the module in  `./build/modules/custom/oe_authorisation` so that it's available for the test site
 - Setup Drush and Drupal's settings using values from `./runner.yml.dist`
 - Setup PHPUnit and Behat configuration files using values from `./runner.yml.dist`
 

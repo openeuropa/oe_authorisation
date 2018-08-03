@@ -1,6 +1,6 @@
 {
-    "name": "openeuropa/oe_authorization",
-    "description": "User authorization features for the OpenEuropa project.",
+    "name": "openeuropa/oe_authorisation",
+    "description": "User authorisation features for the OpenEuropa project.",
     "type": "drupal-module",
     "license": "EUPL-1.2",
     "minimum-stability": "dev",
@@ -35,12 +35,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Drupal\\oe_authorization\\": "./src/"
+            "Drupal\\oe_authorisation\\": "./src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Drupal\\Tests\\oe_authorization\\": "./tests/"
+            "Drupal\\Tests\\oe_authorisation\\": "./tests/"
         }
     },
     "extra": {

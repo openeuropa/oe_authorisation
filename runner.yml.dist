@@ -21,7 +21,7 @@ drupal:
     - "./vendor/bin/drush config-set node.settings use_admin_theme 1 -y"
     # Enable the modules.
     # Activate the module later, so the default Bartik blocks are placed.
-    - "./vendor/bin/drush en oe_authorization -y"
+    - "./vendor/bin/drush en oe_authorisation -y"
   settings:
     settings:
       file_scan_ignore_directories:
@@ -32,7 +32,7 @@ commands:
   drupal:site-setup:
     - { task: "mkdir", dir: "${drupal.root}/profiles" }
     - { task: "mkdir", dir: "${drupal.root}/themes" }
-    - { task: "symlink", from: "../../..", to: "${drupal.root}/modules/custom/oe_authorization" }
+    - { task: "symlink", from: "../../..", to: "${drupal.root}/modules/custom/oe_authorisation" }
     - { task: "run", command: "drupal:drush-setup" }
     - { task: "run", command: "drupal:settings-setup" }
     - { task: "run", command: "setup:phpunit" }

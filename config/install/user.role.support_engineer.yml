@@ -1,8 +1,8 @@
 langcode: en
 status: true
 dependencies: {  }
-id: cem
-label: CEM
+id: support_engineer
+label: Support Engineer
 weight: 2
 is_admin: null
 permissions:
@@ -13,14 +13,8 @@ permissions:
   - 'access site reports'
   - 'access toolbar'
   - 'access user profiles'
-  - 'administer blocks'
-  - 'administer content types'
-  - 'administer filters'
   - 'administer menu'
-  - 'administer modules'
   - 'administer nodes'
-  - 'administer site configuration'
-  - 'administer themes'
   - 'bypass node access'
   - 'delete all revisions'
   - 'link to any page'
