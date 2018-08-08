@@ -2,6 +2,12 @@
 
 The OpenEuropa Authorisation module offers default features related to user authorisation for the OpenEuropa project.
 
+It provides the following user roles:
+
+* Site Manager (general administrative permissions)
+* Support Engineer (general administrative permissions without user management)
+* Editor (content related permissions)
+
 **Table of contents:**
 
 - [Installation](#installation)

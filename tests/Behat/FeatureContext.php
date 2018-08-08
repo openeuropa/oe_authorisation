@@ -14,7 +14,7 @@ class FeatureContext extends DrupalContext {
   /**
    * Checks that a 200 OK response occurred.
    *
-   * @Then I should get a valid web page
+   * @Then I should be able to access the page
    */
   public function assertSuccessfulResponse() {
     $this->assertSession()->statusCodeEquals(200);
@@ -23,7 +23,7 @@ class FeatureContext extends DrupalContext {
   /**
    * Checks that a 403 Access Denied error occurred.
    *
-   * @Then I should get an access denied error
+   * @Then I should not be able to access the page
    */
   public function assertAccessDenied() {
     $this->assertSession()->statusCodeEquals(403);
