@@ -1,6 +1,6 @@
-# OpenEuropa Authorization
+# OpenEuropa Authorisation
 
-The OpenEuropa Authorization module offers default features related to user authorisation for the OpenEuropa project.
+The OpenEuropa Authorisation module offers default features related to user authorisation for the OpenEuropa project.
 
 **Table of contents:**
 
@@ -13,7 +13,7 @@ The OpenEuropa Authorization module offers default features related to user auth
 
 ## Installation
 
-The recommended way of installing the OpenEuropa Authorization module is via a [Composer-based workflow][2].
+The recommended way of installing the OpenEuropa Authorisation module is via a [Composer-based workflow][2].
 
 In your Drupal project's main `composer.json` add the following dependency:
 
@@ -41,7 +41,7 @@ $ ./vendor/bin/drush en oe_authorisation
 
 ## Development
 
-The OpenEuropa Authorization project contains all the necessary code and tools for an effective development process,
+The OpenEuropa Authorisation project contains all the necessary code and tools for an effective development process,
 such as:
 
 - All PHP development dependencies (Drupal core included) are required by [composer.json](composer.json)
@@ -83,7 +83,7 @@ $ ./vendor/bin/run drupal:site-install
 This will:
 
 - Install the test site
-- Enable the OpenEuropa Authorization module
+- Enable the OpenEuropa Authorisation module
 
 ### Using Docker Compose
 
