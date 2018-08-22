@@ -19,8 +19,8 @@
         "drupal/drupal-extension": "^4.0.0@alpha",
         "drush/drush": "^9",
         "openeuropa/code-review": "~0.2",
-        "openeuropa/drupal-core-require-dev": "~8.6@alpha",
-        "openeuropa/task-runner": "^0.5"
+        "openeuropa/drupal-core-require-dev": "~8.6",
+        "openeuropa/task-runner": "~0.5"
     },
     "scripts": {
         "drupal-scaffold": "DrupalComposer\\DrupalScaffold\\Plugin::scaffold",
@@ -45,6 +45,7 @@
     },
     "extra": {
         "composer-exit-on-patch-failure": true,
+        "enable-patching": true,
         "installer-paths": {
             "build/core": ["type:drupal-core"],
             "build/profiles/contrib/{$name}": ["type:drupal-profile"],
