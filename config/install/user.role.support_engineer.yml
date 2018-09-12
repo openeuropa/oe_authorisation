@@ -1,6 +1,11 @@
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  module:
+    - oe_authorisation
+third_party_settings:
+  oe_authorisation:
+    global: true
 id: support_engineer
 label: Support Engineer
 weight: 2

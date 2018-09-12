@@ -1,0 +1,7 @@
+user.role.*.third_party.oe_authorisation:
+  type: mapping
+  label: 'OpenEuropa Authorisation module settings on the Role entities'
+  mapping:
+    global:
+      type: boolean
+      label: 'Whether the role is a "global" role'
