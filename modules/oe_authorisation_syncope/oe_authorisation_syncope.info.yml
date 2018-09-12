@@ -1,0 +1,5 @@
+name: OpenEuropa Authorisation Syncope
+description: Integration with Apache Syncope
+core: 8.x
+type: module
+package: OpenEuropa

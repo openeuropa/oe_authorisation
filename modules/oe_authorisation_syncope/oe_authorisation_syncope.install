@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function oe_authorisation_syncope_install() {
+  // We need to resave the configuration so that the site and realm UUIDs get
+  // set.
+  \Drupal::service('config.factory')->getEditable('oe_authorisation_syncope.settings')->save();
+}

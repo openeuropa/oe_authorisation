@@ -22,6 +22,7 @@ drupal:
     # Enable the modules.
     # Activate the module later, so the default Bartik blocks are placed.
     - "./vendor/bin/drush en oe_authorisation -y"
+    - "./vendor/bin/drush en oe_authorisation_syncope -y"
   settings:
     settings:
       file_scan_ignore_directories:
