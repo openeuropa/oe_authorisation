@@ -17,7 +17,6 @@ use OpenEuropa\SyncopePhpClient\Api\SchemasApi;
 use OpenEuropa\SyncopePhpClient\Model\AnyTypeTO;
 use OpenEuropa\SyncopePhpClient\Model\RealmTO;
 use OpenEuropa\SyncopePhpClient\Model\RoleTO;
-use OpenEuropa\SyncopePhpClient\Model\UserTO;
 use OpenEuropa\TaskRunner\Commands\AbstractCommands;
 use OpenEuropa\SyncopePhpClient\Model\SchemaTO;
 use Robo\Exception\TaskException;
@@ -28,10 +27,15 @@ use Symfony\Component\Console\Input\InputOption;
  */
 class AuthorisationServiceCommands extends AbstractCommands {
 
+  /**
+   * The Syncope domain.
+   *
+   * @var string
+   */
   protected $xSyncopeDomain = 'Master';
 
   /**
-   * Setups Authorisation Service demo data.
+   * Sets up the Authorisation Service (Syncope).
    *
    * @command oe-authorisation-service:setup
    */
@@ -119,15 +123,16 @@ class AuthorisationServiceCommands extends AbstractCommands {
   }
 
   /**
-   * Setups Authorisation Service demo data.
+   * Sets up the Authorisation Service test data.
+   *
+   * @param array $options
+   *   Command options.
    *
    * @command oe-authorisation-service:site-setup
    *
    * @option site_id  Site_id to be provisioned.
    */
-  public function runAuthorisationServiceSiteSetup(array $options = [
-    'site_id' => InputOption::VALUE_REQUIRED,
-  ]): void {
+  public function runAuthorisationServiceSiteSetup(array $options = ['site_id' => InputOption::VALUE_REQUIRED]): void {
 
     $siteId = $options['site_id'];
 
@@ -193,22 +198,21 @@ class AuthorisationServiceCommands extends AbstractCommands {
       throw new TaskException('Exception when calling rolesApi->createRole: ', $e->getMessage());
     }
 
-    // Provisions sytem site account.
+    // Provisions system site account.
     $usersApi = new UsersApi(
       new Client(),
       $config
     );
 
-    $userTo = new UserTO([
-      'realm' => '/' . $siteId,
-      'username' => 'system-account-' . $siteId,
-      'password' => 'password',
-      'roles' => ['system-admin-' . $siteId, 'system-user-site'],
-    ]);
-    $userTo->setClass('org.apache.syncope.common.lib.to.UserTO');
+    $payload = new \stdClass();
+    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.UserTO';
+    $payload->username = 'system-account-' . $siteId;
+    $payload->realm = '/' . $siteId;
+    $payload->password = 'password';
+    $payload->roles = ['system-admin-' . $siteId, 'system-user-site'];
 
     try {
-      $usersApi->createUser($this->xSyncopeDomain, $userTo);
+      $usersApi->createUser($this->xSyncopeDomain, $payload);
     }
     catch (ApiException $e) {
       throw new TaskException('Exception when calling usersApi->createUser: ', $e->getMessage());

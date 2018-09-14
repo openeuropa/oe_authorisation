@@ -7,7 +7,8 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.1",
-        "drupal/core": "~8.6@alpha"
+        "drupal/core": "~8.6@alpha",
+        "openeuropa/syncope-php-client": "dev-master"
     },
     "require-dev": {
         "composer/installers": "^1.2",
