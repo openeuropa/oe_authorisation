@@ -27,15 +27,6 @@ services:
       DB_POOL_MAX: "10"
       DB_POOL_MIN: "2"
       OPENJPA_REMOTE_COMMIT: sjvm
-  syncope-console:
-    depends_on:
-    - syncope
-    image: apache/syncope-console:2.1.1
-    restart: always
-    environment:
-      CORE_SCHEME: "http"
-      CORE_HOST: "syncope"
-      CORE_PORT: "8080"
 
 pipeline:
   composer-install:
