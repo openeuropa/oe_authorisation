@@ -52,7 +52,7 @@ class AuthorisationServiceCommands extends AbstractCommands {
       ->setPassword($password)
       ->setHost($endpoint)
       ->setDebug(TRUE);
-    /*
+    
     // Creates schema field.
     $schemaApi = new SchemasApi(
       new Client(),
@@ -122,7 +122,6 @@ class AuthorisationServiceCommands extends AbstractCommands {
     catch (ApiException $e) {
       throw new TaskException('Exception when calling rolesApi->createRole: ', $e->getMessage());
     }
-    */
 
     // Provision site engineer global role in root realm
     $groupsApi = new GroupsApi(
