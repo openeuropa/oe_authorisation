@@ -3,6 +3,6 @@
 namespace Drupal\oe_authorisation_syncope\Exception;
 
 /**
- * A base exception class to throw when we encounter issues with the Syncope service.
+ * Base exception class to throw when we encounter issues with Syncope.
  */
 class SyncopeException extends \Exception {}

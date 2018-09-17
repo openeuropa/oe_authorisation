@@ -1,6 +1,13 @@
 <?php
 
 /**
+ * @file
+ * OpenEuropa Syncope Authorisation install file.
+ */
+
+declare(strict_types = 1);
+
+/**
  * Implements hook_install().
  */
 function oe_authorisation_syncope_install() {

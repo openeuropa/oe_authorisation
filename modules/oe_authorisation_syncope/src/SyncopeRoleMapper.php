@@ -193,7 +193,7 @@ class SyncopeRoleMapper {
    * This is basically only needed to map an existing role that doesn't already
    * exist in Syncope.
    *
-   * @param RoleInterface $role
+   * @param \Drupal\user\RoleInterface $role
    *   The Drupal role.
    */
   protected function mapExistingRole(RoleInterface $role) {
