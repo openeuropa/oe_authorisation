@@ -17,6 +17,7 @@ use OpenEuropa\SyncopePhpClient\Api\SchemasApi;
 use OpenEuropa\SyncopePhpClient\Model\AnyTypeTO;
 use OpenEuropa\SyncopePhpClient\Model\RealmTO;
 use OpenEuropa\SyncopePhpClient\Model\RoleTO;
+use OpenEuropa\SyncopePhpClient\Model\UserTO;
 use OpenEuropa\TaskRunner\Commands\AbstractCommands;
 use OpenEuropa\SyncopePhpClient\Model\SchemaTO;
 use Robo\Exception\TaskException;
@@ -147,6 +148,7 @@ class AuthorisationServiceCommands extends AbstractCommands {
       ->setDebug(TRUE);
 
     // Provisions realm.
+    /*
     $realmsApi = new RealmsApi(
       new Client(),
       $config
@@ -197,6 +199,7 @@ class AuthorisationServiceCommands extends AbstractCommands {
     catch (ApiException $e) {
       throw new TaskException('Exception when calling rolesApi->createRole: ', $e->getMessage());
     }
+    */
 
     // Provisions system site account.
     $usersApi = new UsersApi(
@@ -204,15 +207,17 @@ class AuthorisationServiceCommands extends AbstractCommands {
       $config
     );
 
-    $payload = new \stdClass();
-    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.UserTO';
-    $payload->username = 'system-account-' . $siteId;
-    $payload->realm = '/' . $siteId;
-    $payload->password = 'password';
-    $payload->roles = ['system-admin-' . $siteId, 'system-user-site'];
+    $userTo = new UserTO([
+      'username' => 'system-account-' . $siteId,
+      'realm' => '/' . $siteId,
+      'password' => 'password',
+      'roles' => ['system-admin-' . $siteId, 'system-user-site']
+    ]);
+
+    $userTo->setClass('org.apache.syncope.common.lib.to.UserTO');
 
     try {
-      $usersApi->createUser($this->xSyncopeDomain, $payload);
+      $usersApi->createUser($this->xSyncopeDomain, $userTo, 'return-content', FALSE, NULL);
     }
     catch (ApiException $e) {
       throw new TaskException('Exception when calling usersApi->createUser: ', $e->getMessage());
