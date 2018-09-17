@@ -177,9 +177,16 @@ class SyncopeRoleMapper {
    */
   protected function mapNewRole(RoleInterface $role): void {
     try {
-      $group = $this->client->getGroup($role->id());
-      // If found, we do nothing in Syncope but we do set the Group ID.
-      $role->setThirdPartySetting('oe_authorisation_syncope', 'syncope_group', $group->getUuid());
+      $id = $role->getThirdPartySetting('oe_authorisation_syncope', 'syncope_group', NULL);
+      if ($id) {
+        $group = $this->client->getGroup($id);
+        // If found, we do nothing in Syncope but we do set the Group ID.
+        $role->setThirdPartySetting('oe_authorisation_syncope', 'syncope_group', $group->getUuid());
+        return;
+      }
+      // If the ID is NULL, it means we can create the Role because it doesn't
+      // exist.
+      throw new SyncopeGroupNotFoundException('Group not found');
     }
     catch (SyncopeGroupNotFoundException $e) {
       $group = $this->client->createGroup($role->id());
