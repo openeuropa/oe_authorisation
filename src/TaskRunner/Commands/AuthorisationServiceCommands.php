@@ -7,6 +7,7 @@ namespace Drupal\oe_authorisation\TaskRunner\Commands;
 use GuzzleHttp\Client;
 use OpenEuropa\SyncopePhpClient\Api\AnyTypeClassesApi;
 use OpenEuropa\SyncopePhpClient\Api\AnyTypesApi;
+use OpenEuropa\SyncopePhpClient\Api\GroupsApi;
 use OpenEuropa\SyncopePhpClient\Api\RealmsApi;
 use OpenEuropa\SyncopePhpClient\Api\RolesApi;
 use OpenEuropa\SyncopePhpClient\Api\UsersApi;
@@ -15,6 +16,7 @@ use OpenEuropa\SyncopePhpClient\Configuration;
 use OpenEuropa\SyncopePhpClient\Model\AnyTypeClassTO;
 use OpenEuropa\SyncopePhpClient\Api\SchemasApi;
 use OpenEuropa\SyncopePhpClient\Model\AnyTypeTO;
+use OpenEuropa\SyncopePhpClient\Model\GroupTO;
 use OpenEuropa\SyncopePhpClient\Model\RealmTO;
 use OpenEuropa\SyncopePhpClient\Model\RoleTO;
 use OpenEuropa\SyncopePhpClient\Model\UserTO;
@@ -50,7 +52,7 @@ class AuthorisationServiceCommands extends AbstractCommands {
       ->setPassword($password)
       ->setHost($endpoint)
       ->setDebug(TRUE);
-
+    /*
     // Creates schema field.
     $schemaApi = new SchemasApi(
       new Client(),
@@ -116,6 +118,26 @@ class AuthorisationServiceCommands extends AbstractCommands {
 
     try {
       $rolesApi->createRole($this->xSyncopeDomain, $roleTo);
+    }
+    catch (ApiException $e) {
+      throw new TaskException('Exception when calling rolesApi->createRole: ', $e->getMessage());
+    }
+    */
+
+    // Provision site engineer global role in root realm
+    $groupsApi = new GroupsApi(
+      new Client(),
+      $config
+    );
+
+    $groupTo = new GroupTO([
+      'name' => 'support_enginner',
+      'realm' => '/',
+    ]);
+    $groupTo->setClass('org.apache.syncope.common.lib.to.GroupTO');
+
+    try {
+      $groupsApi->createGroup($this->xSyncopeDomain, $groupTo);
     }
     catch (ApiException $e) {
       throw new TaskException('Exception when calling rolesApi->createRole: ', $e->getMessage());
