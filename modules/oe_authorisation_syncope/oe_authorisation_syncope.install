@@ -1,10 +1,30 @@
 <?php
 
 /**
+ * @file
+ * OpenEuropa Syncope Authorisation install file.
+ */
+
+declare(strict_types = 1);
+
+/**
  * Implements hook_install().
  */
 function oe_authorisation_syncope_install() {
-  // We need to resave the configuration so that the site and realm UUIDs get
-  // set.
+  // We need to save the configuration so that the site and realm UUIDs get set.
   \Drupal::service('config.factory')->getEditable('oe_authorisation_syncope.settings')->save();
+
+  $roles = \Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple();
+  $excluded = [
+    'authenticated',
+    'anonymous',
+  ];
+
+  foreach ($roles as $role) {
+    if (in_array($role->id(), $excluded)) {
+      continue;
+    }
+
+    $role->save();
+  }
 }

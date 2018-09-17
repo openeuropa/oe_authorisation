@@ -64,8 +64,7 @@ class SyncopeRoleMapper {
    */
   public function preSave(RoleInterface $role): void {
     if (!$role->isNew()) {
-      // For the moment we don't need to map anything else if the Role already
-      // exists.
+      $this->mapExistingRole($role);
       return;
     }
 
@@ -186,6 +185,20 @@ class SyncopeRoleMapper {
       $group = $this->client->createGroup($role->id());
       $role->setThirdPartySetting('oe_authorisation_syncope', 'syncope_group', $group->getUuid());
     }
+  }
+
+  /**
+   * Maps an existing role.
+   *
+   * This is basically only needed to map an existing role that doesn't already
+   * exist in Syncope.
+   *
+   * @param \Drupal\user\RoleInterface $role
+   *   The Drupal role.
+   */
+  protected function mapExistingRole(RoleInterface $role) {
+    // We can just defer to mapNewRole() as it does the check for existing role.
+    $this->mapNewRole($role);
   }
 
 }

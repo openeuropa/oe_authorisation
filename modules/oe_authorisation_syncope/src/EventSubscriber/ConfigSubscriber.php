@@ -17,6 +17,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class ConfigSubscriber implements EventSubscriberInterface {
 
   /**
+   * Syncope client object.
+   *
    * @var \Drupal\oe_authorisation_syncope\SyncopeClient
    */
   protected $client;
@@ -25,6 +27,7 @@ class ConfigSubscriber implements EventSubscriberInterface {
    * ConfigSubscriber constructor.
    *
    * @param \Drupal\oe_authorisation_syncope\SyncopeClient $client
+   *   Available Syncope client.
    */
   public function __construct(SyncopeClient $client) {
     $this->client = $client;

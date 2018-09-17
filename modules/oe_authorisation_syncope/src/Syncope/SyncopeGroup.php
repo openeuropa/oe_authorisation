@@ -47,21 +47,30 @@ class SyncopeGroup {
   }
 
   /**
+   * Returns the UUID of the group.
+   *
    * @return string
+   *   UUID of the group.
    */
   public function getUuid(): string {
     return $this->uuid;
   }
 
   /**
+   * Returns the Syncope name of the group.
+   *
    * @return string
+   *   Name of the group in Syncope.
    */
   public function getSyncopeName(): string {
     return $this->syncopeName;
   }
 
   /**
+   * Returns the Drupal name of the group.
+   *
    * @return string
+   *   Name of the group in Drupal.
    */
   public function getDrupalName(): string {
     return $this->drupalName;

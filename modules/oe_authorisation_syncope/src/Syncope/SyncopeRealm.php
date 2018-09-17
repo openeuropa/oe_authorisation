@@ -66,35 +66,50 @@ class SyncopeRealm {
   }
 
   /**
+   * Returns the UUID of the realm.
+   *
    * @return string
+   *   UUID of the realm.
    */
   public function getUuid(): string {
     return $this->uuid;
   }
 
   /**
+   * Returns the name of the realm.
+   *
    * @return string
+   *   Name of the realm.
    */
   public function getName(): string {
     return $this->name;
   }
 
   /**
+   * Returns the path of the realm.
+   *
    * @return string
+   *   Path of the realm.
    */
   public function getPath(): string {
     return $this->path;
   }
 
   /**
+   * Returns the parent realm.
+   *
    * @return string
+   *   Parent realm.
    */
   public function getParent(): string {
     return $this->parent;
   }
 
   /**
+   * Checks whether the realm is a root level realm or not.
+   *
    * @return bool
+   *   TRUE if the realm has no parents or FALSE otherwise.
    */
   public function isRoot(): bool {
     return $this->isRoot;
