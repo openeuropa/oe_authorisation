@@ -8,6 +8,9 @@ It provides the following user roles:
 * Support Engineer (general administrative permissions without user management)
 * Editor (content related permissions)
 
+It also provides the OpenEuropa Authorisation Syncope submodule that is used to integrate with the Syncope authorisation service.
+The latter can also be provisioned as part of this repository for development purposes. See the [Project setup](#project-setup) for details.
+
 **Table of contents:**
 
 - [Installation](#installation)
@@ -91,6 +94,8 @@ This will:
 - Install the test site
 - Enable the OpenEuropa Authorisation module
 
+**For the OpenEuropa Authorisation Syncope module you need to set up the project using Docker**
+
 ### Using Docker Compose
 
 The setup procedure described above can be sensitively simplified by using Docker Compose.
@@ -110,14 +115,36 @@ Run:
 $ docker-compose up -d
 ```
 
-Then:
+Syncope Console is available at: http://localhost:28080/syncope-console (admin/password)
+
+Install PHP dependencies by running:
 
 ```
 $ docker-compose exec web composer install
+```
+
+The Syncope provisioning should happen before the site is installed. To provision the Syncope container you need to run this command:
+
+```
+$ docker-compose exec web ./vendor/bin/run oe-authorisation-service:setup
+```
+
+Then, in order to have a Site realm and system user for your test site, you can run this command:
+
+```
+$ docker-compose exec web ./vendor/bin/run oe-authorisation-service:site-setup --site_id=sitea
+```
+
+(where `sitea` is the Site ID (realm) of your local site).
+
+Then you can install the Drupal site:
+
+```
 $ docker-compose exec web ./vendor/bin/run drupal:site-install
 ```
 
-Your test site will be available at [http://localhost:8080/build](http://localhost:8080/build).
+Your test site will be available at [http://localhost:8080/build](http://localhost:8080/build) and the OpenEuropa Authorisation Syncope module
+will be enabled by default.
 
 Run tests as follows:
 

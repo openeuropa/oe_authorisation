@@ -11,6 +11,22 @@ services:
     image: percona/percona-server:5.6
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=syncope
+      - MYSQL_USER=syncope
+      - MYSQL_PASSWORD=syncope
+  syncope:
+    depends_on:
+    - mysql
+    image: apache/syncope:2.1.1
+    restart: always
+    environment:
+      DBMS: "mysql"
+      DB_URL: "jdbc:mysql://mysql:3306/syncope?characterEncoding=UTF-8&relaxAutoCommit=true&useSSL=false"
+      DB_USER: "syncope"
+      DB_PASSWORD: "syncope"
+      DB_POOL_MAX: "10"
+      DB_POOL_MIN: "2"
+      OPENJPA_REMOTE_COMMIT: sjvm
 
 pipeline:
   composer-install:
@@ -20,6 +36,12 @@ pipeline:
       - /cache:/cache
     commands:
       - composer install
+
+  syncope-provisioning:
+    image: fpfis/httpd-php-dev:7.1
+    commands:
+    - ./vendor/bin/run oe-authorisation-service:setup
+    - ./vendor/bin/run oe-authorisation-service:site-setup --site_id=sitea
 
   site-install:
     image: fpfis/httpd-php-dev:7.1
