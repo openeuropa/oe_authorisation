@@ -28,6 +28,15 @@ drupal:
       file_scan_ignore_directories:
         - "vendor"
         - "${drupal.root}"
+    config:
+      oe_authorisation_syncope.settings:
+        credentials:
+          username: 'admin'
+          password: 'password'
+        endpoint: 'http://syncope:8080/syncope/rest'
+        domain: 'Master'
+        site_realm_name: 'sitea'
+
 
 authorisation:
   server:
@@ -41,15 +50,6 @@ commands:
     - { task: "mkdir", dir: "${drupal.root}/themes" }
     - { task: "symlink", from: "../../..", to: "${drupal.root}/modules/custom/oe_authorisation" }
     - { task: "run", command: "drupal:drush-setup" }
-    - task: "append"
-      file: "build/sites/default/default.settings.php"
-      text: |
-        $config['oe_authorisation_syncope.settings']['credentials']['username'] = 'admin';
-        $config['oe_authorisation_syncope.settings']['credentials']['password'] = 'password';
-        $config['oe_authorisation_syncope.settings']['endpoint'] = 'http://syncope:8080/syncope/rest';
-        $config['oe_authorisation_syncope.settings']['domain'] = 'Master';
-        $config['oe_authorisation_syncope.settings']['site_realm_name'] = 'sitea';
-
     - { task: "run", command: "drupal:settings-setup" }
     - { task: "run", command: "setup:phpunit" }
     - { task: "run", command: "setup:behat" }
