@@ -115,7 +115,9 @@ Run:
 $ docker-compose up -d
 ```
 
-Then:
+Syncope Console is available at: http://localhost:28080/syncope-console (admin/password)
+
+Install PHP dependencies by running:
 
 ```
 $ docker-compose exec web composer install
