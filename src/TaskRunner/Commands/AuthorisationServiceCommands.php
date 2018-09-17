@@ -148,7 +148,6 @@ class AuthorisationServiceCommands extends AbstractCommands {
       ->setDebug(TRUE);
 
     // Provisions realm.
-    /*
     $realmsApi = new RealmsApi(
       new Client(),
       $config
@@ -199,7 +198,6 @@ class AuthorisationServiceCommands extends AbstractCommands {
     catch (ApiException $e) {
       throw new TaskException('Exception when calling rolesApi->createRole: ', $e->getMessage());
     }
-    */
 
     // Provisions system site account.
     $usersApi = new UsersApi(
