@@ -64,6 +64,7 @@ class SyncopeUserMapper {
   public function preSave(UserInterface $user): void {
     if ($user->isNew()) {
       $this->mapNewUser($user);
+      return;
     }
 
     $this->mapExistingUser($user);
@@ -127,8 +128,6 @@ class SyncopeUserMapper {
 
   /**
    * Maps a new user when it first gets created.
-   *
-   * @todo map also the EU login field (which is the Drupal username).
    *
    * @param \Drupal\user\UserInterface $user
    *   The user.

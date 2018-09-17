@@ -240,6 +240,13 @@ class SyncopeClient {
     $payload->memberships = $memberships;
     $payload->name = $username;
     $payload->type = 'OeUser';
+    // @todo move this out of here and set the EULogin ID dynamically.
+    $payload->plainAttrs = [
+      [
+        'schema' => 'eulogin_id',
+        'values' => [$user->getName()],
+      ],
+    ];
 
     try {
       $response = $api->createAnyObject($this->syncopeDomain, $payload);
@@ -298,6 +305,13 @@ class SyncopeClient {
     $payload->name = $username;
     $payload->type = 'OeUser';
     $payload->key = $user->getUuid();
+    // @todo move this out of here and set the EULogin ID dynamically.
+    $payload->plainAttrs = [
+      [
+        'schema' => 'eulogin_id',
+        'values' => [$user->getName()],
+      ],
+    ];
 
     try {
       $response = $api->updateAnyObject($user->getUuid(), $this->syncopeDomain, $payload);
