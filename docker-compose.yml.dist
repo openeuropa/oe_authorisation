@@ -18,6 +18,9 @@ services:
     image: percona/percona-server:5.6
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: syncope
+      MYSQL_USER: syncope
+      MYSQL_PASSWORD: syncope
 #    ports:
 #      - 3306:3306
 
