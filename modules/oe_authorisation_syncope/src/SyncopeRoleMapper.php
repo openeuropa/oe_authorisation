@@ -139,14 +139,15 @@ class SyncopeRoleMapper {
     }
 
     // We don't catch this exception because we want a failure.
-    $syncope_user = $this->client->getUser($uuid);
     $roles = ['authenticated'];
 
-    $groups = $syncope_user->getGroups();
-    if ($groups) {
-      $ids = $this->entityTypeManager->getStorage('user_role')->getQuery()
-        ->condition('third_party_settings.oe_authorisation_syncope.syncope_group', $groups, 'IN')
-        ->execute();
+    $groups = $this->client->getAllUserGroups($user->label());
+
+    if (!empty($groups)) {
+
+      foreach ($groups as $group) {
+       $ids[] = $group->getDrupalName();
+      }
 
       if ($ids) {
         $roles = array_merge($roles, array_values($ids));
