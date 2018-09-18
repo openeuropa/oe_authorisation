@@ -19,7 +19,7 @@
         "drupal/devel": "^1.2",
         "drupal/drupal-extension": "^4.0.0@alpha",
         "drush/drush": "^9",
-        "openeuropa/code-review": "~0.2",
+        "openeuropa/code-review": "dev-master",
         "openeuropa/drupal-core-require-dev": "~8.6",
         "openeuropa/task-runner": "~0.7"
     },

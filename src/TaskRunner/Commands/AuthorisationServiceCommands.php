@@ -52,7 +52,7 @@ class AuthorisationServiceCommands extends AbstractCommands {
       ->setPassword($password)
       ->setHost($endpoint)
       ->setDebug(TRUE);
-    
+
     // Creates schema field.
     $schemaApi = new SchemasApi(
       new Client(),
@@ -123,14 +123,14 @@ class AuthorisationServiceCommands extends AbstractCommands {
       throw new TaskException('Exception when calling rolesApi->createRole: ', $e->getMessage());
     }
 
-    // Provision site engineer global role in root realm
+    // Provision site engineer global role in root realm.
     $groupsApi = new GroupsApi(
       new Client(),
       $config
     );
 
     $groupTo = new GroupTO([
-      'name' => 'support_enginner',
+      'name' => 'support_engineer',
       'realm' => '/',
     ]);
     $groupTo->setClass('org.apache.syncope.common.lib.to.GroupTO');
@@ -230,7 +230,7 @@ class AuthorisationServiceCommands extends AbstractCommands {
       'username' => 'system-account-' . $siteId,
       'realm' => '/' . $siteId,
       'password' => 'password',
-      'roles' => ['system-admin-' . $siteId, 'system-user-site']
+      'roles' => ['system-admin-' . $siteId, 'system-user-site'],
     ]);
 
     $userTo->setClass('org.apache.syncope.common.lib.to.UserTO');
