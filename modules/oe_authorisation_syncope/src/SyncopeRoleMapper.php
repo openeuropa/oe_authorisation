@@ -124,7 +124,7 @@ class SyncopeRoleMapper {
   }
 
   /**
-   * Updates the roles of a user from those found in Syncope.
+   * Returns the roles of a user from those found in Syncope.
    *
    * @param \Drupal\user\UserInterface $user
    *   The Drupal user.
@@ -144,9 +144,9 @@ class SyncopeRoleMapper {
     $groups = $this->client->getAllUserGroups($user->label());
 
     if (!empty($groups)) {
-
+      $ids = [];
       foreach ($groups as $group) {
-       $ids[] = $group->getDrupalName();
+        $ids[] = $group->getDrupalName();
       }
 
       if ($ids) {
