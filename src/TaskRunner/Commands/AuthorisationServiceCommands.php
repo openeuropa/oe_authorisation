@@ -139,7 +139,7 @@ class AuthorisationServiceCommands extends AbstractCommands {
       $groupsApi->createGroup($this->xSyncopeDomain, $groupTo);
     }
     catch (ApiException $e) {
-      throw new TaskException('Exception when calling rolesApi->createRole: ', $e->getMessage());
+      throw new TaskException('Exception when calling GroupsApi->createGroup: ', $e->getMessage());
     }
 
   }

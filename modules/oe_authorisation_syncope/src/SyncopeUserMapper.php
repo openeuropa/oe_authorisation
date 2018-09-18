@@ -106,7 +106,8 @@ class SyncopeUserMapper {
     }
 
     try {
-      $syncope_user = $this->client->getUser($uuid);
+      // Currently the Eu Login ID is the username in Drupal.
+      $groups = $this->client->getAllUserGroups($user->label());
     }
     catch (SyncopeUserNotFoundException $e) {
       $this->logger->info('The user that logged in could not be found in Syncope: ' . $user->id());
@@ -115,11 +116,12 @@ class SyncopeUserMapper {
       return;
     }
 
-    $roles = ['authenticated'];
-    $syncope_roles = $syncope_user->getGroups();
-    if ($syncope_roles) {
-      $drupal_roles = $this->roleMapper->mapSyncopeGroupsToRoles($syncope_roles);
-      $roles = array_merge($roles, $drupal_roles);
+    $roles = [
+      'authenticated',
+    ];
+
+    foreach ($groups as $group) {
+      $roles[] = $group->getDrupalName();
     }
 
     $user->set('roles', $roles);

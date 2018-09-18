@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\oe_authorisation_syncope;
 
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeException;
@@ -71,6 +72,13 @@ class SyncopeClient {
   protected $logger;
 
   /**
+   * The Drupal config object for Syncope.
+   *
+   * @var \Drupal\Core\Config\Config
+   */
+  protected $config;
+
+  /**
    * SyncopeClient constructor.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
@@ -82,13 +90,13 @@ class SyncopeClient {
    */
   public function __construct(ConfigFactoryInterface $configFactory, ClientInterface $client, LoggerChannelFactoryInterface $loggerChannelFactory) {
     $this->client = $client;
-    $config = $configFactory->get('oe_authorisation_syncope.settings');
+    $this->config = $configFactory->get('oe_authorisation_syncope.settings');
     $this->configuration = Configuration::getDefaultConfiguration()
-      ->setUsername($config->get('credentials.username'))
-      ->setPassword($config->get('credentials.password'))
-      ->setHost($config->get('endpoint'));
-    $this->syncopeDomain = $config->get('domain');
-    $this->siteRealm = $config->get('site_realm_name');
+      ->setUsername($this->config->get('credentials.username'))
+      ->setPassword($this->config->get('credentials.password'))
+      ->setHost($this->config->get('endpoint'));
+    $this->syncopeDomain = $this->config->get('domain');
+    $this->siteRealm = $this->config->get('site_realm_name');
     $this->logger = $loggerChannelFactory->get('oe_authorisation_syncope');
   }
 
@@ -381,6 +389,65 @@ class SyncopeClient {
     }
 
     return new SyncopeUser($response->key, $response->name, $groups);
+  }
+
+  /**
+   * Gets all the user groups from Syncope.
+   *
+   * Since a user is represented as an OeUser at each level of the realm
+   * hierarchy, we need to perform a query by the unique identifier of that
+   * user to get the roles at all levels.
+   *
+   * The unique ID in this case is the EULogin ID.
+   *
+   * @param string $eu_login
+   *   The EU Login ID of the user.
+   * @param array $realms
+   *   Which realms to query in.
+   *
+   * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeGroup[]
+   *   The Syncope group object.
+   */
+  public function getAllUserGroups(string $eu_login, array $realms = []) {
+    if (empty($realms)) {
+      $realms = [
+        $this->config->get('root_realm_uuid'),
+        $this->config->get('site_realm_uuid'),
+      ];
+    }
+    $realms_fiql = '(';
+    foreach ($realms as $key => $realm) {
+      $realms_fiql .= 'realm==' . $realm;
+      if ($key === (count($realms) - 1)) {
+        $realms_fiql .= ')';
+        break;
+      }
+      $realms_fiql .= ',';
+    }
+    $fiql = new FormattableMarkup('$type==OeUser;eulogin_id==@eulogin_id;@realms', ['@eulogin_id' => $eu_login, '@realms' => $realms_fiql]);
+    $api = new AnyObjectsApi($this->client, $this->configuration);
+    try {
+      $response = $api->searchAnyObject($this->syncopeDomain, 1, 5, NULL, NULL, NULL, (string) $fiql);
+    }
+    catch (\Exception $e) {
+      throw new SyncopeUserException(sprintf('There was a problem querying the user %s: %s', $eu_login, $e->getMessage()));
+    }
+
+    if (empty($response->result)) {
+      throw new SyncopeUserNotFoundException(sprintf('The user could not be found by the EU Login ID %s in these realms: %s.', $eu_login, implode(', ', $realms)));
+    }
+
+    $groups = [];
+
+    foreach ($response->result as $object) {
+      $memberships = $object->memberships;
+      foreach ($memberships as $membership) {
+        $drupal_name = $drupal_name = str_replace('@' . $this->siteRealm, '', $membership->groupName);
+        $groups[] = new SyncopeGroup($membership->groupKey, $membership->groupName, $drupal_name);
+      }
+    }
+
+    return $groups;
   }
 
   /**

@@ -63,6 +63,12 @@ class SyncopeRoleMapper {
    *   The user role.
    */
   public function preSave(RoleInterface $role): void {
+    // We do not map global roles as they are created during provisioning or
+    // directly in the Syncope service.
+    if ($role->getThirdPartySetting('oe_authorisation', 'global', FALSE)) {
+      return;
+    }
+
     if (!$role->isNew()) {
       $this->mapExistingRole($role);
       return;
@@ -148,22 +154,6 @@ class SyncopeRoleMapper {
     }
 
     return $roles;
-  }
-
-  /**
-   * Given an array of Syncope groups, map them to Drupal roles.
-   *
-   * @param array $groups
-   *   The Syncope group UUIDs.
-   *
-   * @return array
-   *   The roles that can be used in Drupal to assign to a user.
-   */
-  public function mapSyncopeGroupsToRoles(array $groups): array {
-    $ids = $this->entityTypeManager->getStorage('user_role')->getQuery()
-      ->condition('third_party_settings.oe_authorisation_syncope.syncope_group', $groups, 'IN')
-      ->execute();
-    return $ids ? array_values($ids) : [];
   }
 
   /**
