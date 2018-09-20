@@ -23,6 +23,8 @@ use OpenEuropa\SyncopePhpClient\Configuration;
 
 /**
  * Service that wraps the Syncope PHP client.
+ *
+ * @SuppressWarnings(PHPMD)
  */
 class SyncopeClient {
 
@@ -225,13 +227,15 @@ class SyncopeClient {
    *
    * @param \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser $user
    *   The Syncope user.
+   * @param string $destination_realm
+   *   The destination realm: site or root.
    *
    * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser
    *   The Syncope user.
    *
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeUserException
    */
-  public function createUser(SyncopeUser $user): SyncopeUser {
+  public function createUser(SyncopeUser $user, $destination_realm = 'site'): SyncopeUser {
     $api = new AnyObjectsApi($this->client, $this->configuration);
 
     $memberships = [];
@@ -241,10 +245,18 @@ class SyncopeClient {
       ];
     }
 
-    $username = $user->getName() . '@' . $this->siteRealm;
+    if ($destination_realm === 'site') {
+      $username = $user->getName() . '@' . $this->siteRealm;
+      $realm = '/' . $this->siteRealm;
+    }
+    else {
+      $username = $user->getName();
+      $realm = '/';
+    }
+
     $payload = new \stdClass();
     $payload->{'@class'} = 'org.apache.syncope.common.lib.to.AnyObjectTO';
-    $payload->realm = '/' . $this->siteRealm;
+    $payload->realm = $realm;
     $payload->memberships = $memberships;
     $payload->name = $username;
     $payload->type = 'OeUser';
@@ -392,11 +404,11 @@ class SyncopeClient {
   }
 
   /**
-   * Gets all the user groups from Syncope.
+   * Gets all the users from Syncope that match one EU Login ID.
    *
    * Since a user is represented as an OeUser at each level of the realm
    * hierarchy, we need to perform a query by the unique identifier of that
-   * user to get the roles at all levels.
+   * user at all levels.
    *
    * The unique ID in this case is the EULogin ID.
    *
@@ -405,10 +417,10 @@ class SyncopeClient {
    * @param array $realms
    *   Which realms to query in.
    *
-   * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeGroup[]
-   *   The Syncope group object.
+   * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser[]
+   *   The list of users.
    */
-  public function getAllUserGroups(string $eu_login, array $realms = []) {
+  public function getAllUsers(string $eu_login, array $realms = []) {
     if (empty($realms)) {
       $realms = [
         $this->config->get('root_realm_uuid'),
@@ -437,13 +449,45 @@ class SyncopeClient {
       throw new SyncopeUserNotFoundException(sprintf('The user could not be found by the EU Login ID %s in these realms: %s.', $eu_login, implode(', ', $realms)));
     }
 
-    $groups = [];
-
+    $users = [];
     foreach ($response->result as $object) {
       $memberships = $object->memberships;
+      $groups = [];
       foreach ($memberships as $membership) {
-        $drupal_name = $drupal_name = str_replace('@' . $this->siteRealm, '', $membership->groupName);
-        $groups[] = new SyncopeGroup($membership->groupKey, $membership->groupName, $drupal_name);
+        $groups[] = $membership->groupKey;
+      }
+
+      $users[] = new SyncopeUser($object->key, $object->name, $groups);
+    }
+
+    return $users;
+  }
+
+  /**
+   * Gets all the user groups from Syncope.
+   *
+   * Since a user is represented as an OeUser at each level of the realm
+   * hierarchy, we need to perform a query by the unique identifier of that
+   * user to get the roles at all levels.
+   *
+   * The unique ID in this case is the EULogin ID.
+   *
+   * @param string $eu_login
+   *   The EU Login ID of the user.
+   * @param array $realms
+   *   Which realms to query in.
+   *
+   * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeGroup[]
+   *   The Syncope group object.
+   */
+  public function getAllUserGroups(string $eu_login, array $realms = []) {
+    $users = $this->getAllUsers($eu_login, $realms);
+
+    $groups = [];
+
+    foreach ($users as $user) {
+      foreach ($user->getGroups() as $uuid) {
+        $groups[] = $this->getGroup($uuid);
       }
     }
 
@@ -459,16 +503,6 @@ class SyncopeClient {
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeUserException
    */
   public function deleteUser(string $identifier): void {
-    try {
-      $this->getUser($identifier);
-    }
-    catch (SyncopeUserNotFoundException $e) {
-      $this->logger->info('A user was attempted to be removed but was not found in Syncope: ' . $identifier);
-      // If the user does not exist, we cannot delete it. But we don't need to
-      // fail.
-      return;
-    }
-
     $api = new AnyObjectsApi($this->client, $this->configuration);
     try {
       $api->deleteAnyObject($identifier, $this->syncopeDomain);
@@ -476,6 +510,69 @@ class SyncopeClient {
     catch (\Exception $e) {
       $this->logger->error(sprintf('There was a problem deleting the user %s: %s.', $identifier, $e->getMessage()));
       throw new SyncopeUserException('There was a problem deleting the user.');
+    }
+  }
+
+  /**
+   * Adds global roles to a root user.
+   *
+   * @param string $eu_login
+   *   The unique EU Login ID.
+   * @param array $roles
+   *   The roles.
+   */
+  public function addGlobalRoles(string $eu_login, array $roles = []): void {
+    $users = $this->getAllUsers($eu_login);
+    $root_user = NULL;
+    foreach ($users as $user) {
+      // @todo refactor this.
+      if (strpos($user->getName(), '@') === FALSE) {
+        $root_user = $user;
+        break;
+      }
+    }
+
+    if (!$root_user) {
+      throw new SyncopeUserException('The root user is missing. We cannot add a global role.');
+    }
+
+    // @todo check if the role is set already.
+    $api = new AnyObjectsApi($this->client, $this->configuration);
+
+    $memberships = [];
+    foreach ($roles as $role) {
+      $group = $this->getGroup($role);
+      $memberships[] = [
+        'groupKey' => $group->getUuid(),
+      ];
+    }
+
+    $payload = new \stdClass();
+    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.AnyObjectTO';
+    $payload->realm = '/';
+    $payload->memberships = $memberships;
+    $payload->name = $root_user->getName();
+    $payload->type = 'OeUser';
+    $payload->key = $root_user->getUuid();
+    // @todo move this out of here and set the EULogin ID dynamically.
+    $payload->plainAttrs = [
+      [
+        'schema' => 'eulogin_id',
+        'values' => [$root_user->getName()],
+      ],
+    ];
+
+    try {
+      $response = $api->updateAnyObject($root_user->getUuid(), $this->syncopeDomain, $payload);
+    }
+    catch (\Exception $e) {
+      $this->logger->error(sprintf('There was a problem updating the user %s: %s.', $user->getName(), $e->getMessage()));
+      throw new SyncopeUserException('There was a problem updating the user.');
+    }
+
+    if (!isset($response->entity)) {
+      $this->logger->error(sprintf('There was a problem creating the user %s.', $user->getName()));
+      throw new SyncopeUserException('There was a problem updating the user.');
     }
   }
 
