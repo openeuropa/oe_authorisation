@@ -525,7 +525,7 @@ class SyncopeClient {
     $users = $this->getAllUsers($eu_login);
     $root_user = NULL;
     foreach ($users as $user) {
-      // @todo refactor this.
+      // @todo refactor this to determine root user inside the SyncopeUser.
       if (strpos($user->getName(), '@') === FALSE) {
         $root_user = $user;
         break;

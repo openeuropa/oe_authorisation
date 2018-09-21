@@ -85,6 +85,8 @@ class SyncopeUserMapper {
       // We do nothing here, not even log.
       return;
     }
+
+    // @todo, see if there is a user to delete.
     $this->client->deleteUser($uuid);
   }
 

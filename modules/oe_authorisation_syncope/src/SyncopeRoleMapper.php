@@ -69,6 +69,11 @@ class SyncopeRoleMapper {
       return;
     }
 
+    // We also don't want to ever map the default roles.
+    if (in_array($role->id(), ['anonymous', 'authenticated'])) {
+      return;
+    }
+
     if (!$role->isNew()) {
       $this->mapExistingRole($role);
       return;
