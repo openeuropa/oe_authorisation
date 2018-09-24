@@ -76,4 +76,18 @@ class SyncopeUser {
     return $this->groups;
   }
 
+  /**
+   * Checks if the user is a root level user.
+   *
+   * @return bool
+   *   Whether the user is root level.
+   */
+  public function isRootUser(): bool {
+    if (strpos($this->getName(), '@') === FALSE) {
+      return TRUE;
+    }
+
+    return FALSE;
+  }
+
 }

@@ -337,7 +337,7 @@ class SyncopeContext extends RawDrupalContext {
    *   The entity.
    */
   protected function loadRoleByName(string $role): RoleInterface {
-    $roles = $this->getEntityTypeManager()->getStorage('user_role')->loadByProperties(['label' => $role]);
+    $roles = $this->getEntityTypeManager()->getStorage('user_role')->loadByProperties(['label' => [$role]]);
     if (!$roles) {
       throw new \Exception(sprintf('The requested role %s could not be found', $role));
     }
@@ -360,7 +360,7 @@ class SyncopeContext extends RawDrupalContext {
     $roles = explode(', ', $roles);
     $role_entities = $this->getEntityTypeManager()->getStorage('user_role')->loadByProperties(['label' => $roles]);
     if (count($roles) !== count($role_entities)) {
-      throw new \Exception('All roles cound not be found');
+      throw new \Exception('All roles could not be found');
     }
 
     return $role_entities;

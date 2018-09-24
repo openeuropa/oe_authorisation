@@ -2,11 +2,6 @@ services:
   oe_authorisation_syncope.client:
     class: Drupal\oe_authorisation_syncope\SyncopeClient
     arguments: ['@config.factory', '@http_client', '@logger.factory']
-  oe_authorisation_syncope.config_subscriber:
-    class: Drupal\oe_authorisation_syncope\EventSubscriber\ConfigSubscriber
-    arguments: ['@oe_authorisation_syncope.client']
-    tags:
-      - { name: event_subscriber }
   oe_authorisation_syncope.role_mapper:
     class: Drupal\oe_authorisation_syncope\SyncopeRoleMapper
     arguments: ['@oe_authorisation_syncope.client', '@entity_type.manager', '@logger.factory']

@@ -21,8 +21,7 @@ drupal:
     - "./vendor/bin/drush config-set node.settings use_admin_theme 1 -y"
     # Enable the modules.
     # Activate the module later, so the default Bartik blocks are placed.
-    - "./vendor/bin/drush en oe_authorisation -y"
-    - "./vendor/bin/drush en oe_authorisation_syncope -y"
+    - "./vendor/bin/drush en oe_authorisation oe_authorisation_syncope -y"
   settings:
     settings:
       file_scan_ignore_directories:

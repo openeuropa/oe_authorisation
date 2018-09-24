@@ -61,13 +61,3 @@ Feature: Syncope integration
     And I click "Edit"
     Then the "Support Engineer" role checkbox should be disabled
 
-  Scenario: Roles created in Drupal should be mapped in Syncope
-    Given I am logged in as a user with the "administer users, administer permissions" permissions
-    And I go to "/admin/people/roles"
-    And I click "Add role"
-    And print last response
-    And I fill in "Role name" with "My new role"
-    And I fill in "Machine-readable name" with "my_new_role"
-    And I press "Save"
-    Then the role "My new role" should exist in Syncope
-

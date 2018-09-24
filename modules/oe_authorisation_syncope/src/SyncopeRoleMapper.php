@@ -63,6 +63,10 @@ class SyncopeRoleMapper {
    *   The user role.
    */
   public function preSave(RoleInterface $role): void {
+    if (\Drupal::configFactory()->get('oe_authorisation_syncope.settings')->get('site_realm_uuid') == "") {
+      return;
+    }
+
     // We do not map global roles as they are created during provisioning or
     // directly in the Syncope service.
     if ($role->getThirdPartySetting('oe_authorisation', 'global', FALSE)) {
@@ -180,9 +184,11 @@ class SyncopeRoleMapper {
         $role->setThirdPartySetting('oe_authorisation_syncope', 'syncope_group', $group->getUuid());
         return;
       }
-      // If the ID is NULL, it means we can create the Role because it doesn't
-      // exist.
-      throw new SyncopeGroupNotFoundException('Group not found');
+      // If the ID is NULL, we try by name. Normally this should not be needed
+      // but just in case the role already exists on the Syncope instance.
+      $group = $this->client->getGroup($role->id(), SyncopeClient::GROUP_IDENTIFIER_NAME);
+      // Just in case the group is already there but no UUID has been set.
+      $role->setThirdPartySetting('oe_authorisation_syncope', 'syncope_group', $group->getUuid());
     }
     catch (SyncopeGroupNotFoundException $e) {
       $group = $this->client->createGroup($role->id());

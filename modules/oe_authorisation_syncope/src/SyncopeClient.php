@@ -39,6 +39,17 @@ class SyncopeClient {
   const USER_IDENTIFIER_USERNAME = 'username';
 
   /**
+   * The identifier to use for retrieving a group by UUID.
+   */
+  const GROUP_IDENTIFIER_UUID = 'uuid';
+
+  /**
+   * The identifier to use for retrieving a group by name.
+   */
+  const GROUP_IDENTIFIER_NAME = 'name';
+
+
+  /**
    * The configuration data.
    *
    * @var \OpenEuropa\SyncopePhpClient\Configuration
@@ -169,6 +180,8 @@ class SyncopeClient {
    *
    * @param string $identifier
    *   Can be either the UUID or the name.
+   * @param string $identifier_type
+   *   Whether to identify by UUID or name.
    *
    * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeGroup
    *   The Syncope group.
@@ -176,8 +189,11 @@ class SyncopeClient {
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeGroupException
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeGroupNotFoundException
    */
-  public function getGroup(string $identifier) {
+  public function getGroup(string $identifier, $identifier_type = self::GROUP_IDENTIFIER_UUID) {
     $api = new GroupsApi($this->client, $this->configuration);
+    if ($identifier_type === self::GROUP_IDENTIFIER_NAME) {
+      $identifier .= '@' . $this->siteRealm;
+    }
 
     try {
       $response = $api->readGroup($identifier, $this->syncopeDomain);
@@ -372,7 +388,7 @@ class SyncopeClient {
    */
   public function getUser(string $identifier, $identifier_type = self::USER_IDENTIFIER_UUID): SyncopeUser {
     $api = new AnyObjectsApi($this->client, $this->configuration);
-    if ($identifier_type === 'username') {
+    if ($identifier_type === self::USER_IDENTIFIER_USERNAME) {
       $identifier .= '@' . $this->siteRealm;
     }
 
@@ -525,10 +541,8 @@ class SyncopeClient {
     $users = $this->getAllUsers($eu_login);
     $root_user = NULL;
     foreach ($users as $user) {
-      // @todo refactor this to determine root user inside the SyncopeUser.
-      if (strpos($user->getName(), '@') === FALSE) {
+      if ($user->isRootUser()) {
         $root_user = $user;
-        break;
       }
     }
 

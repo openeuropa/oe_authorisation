@@ -46,6 +46,11 @@
     },
     "extra": {
         "composer-exit-on-patch-failure": true,
+        "patches": {
+            "drupal/core": {
+                "https://www.drupal.org/project/drupal/issues/2571475": "https://www.drupal.org/files/issues/outbound_http_requests-2571475-10.patch"
+            }
+        },
         "enable-patching": true,
         "installer-paths": {
             "build/core": ["type:drupal-core"],
