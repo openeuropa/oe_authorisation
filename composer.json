@@ -7,7 +7,7 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.1",
-        "drupal/core": "~8.6@alpha",
+        "drupal/core": "8.6.x-dev",
         "openeuropa/syncope-php-client": "dev-master"
     },
     "require-dev": {
@@ -19,9 +19,9 @@
         "drupal/devel": "^1.2",
         "drupal/drupal-extension": "^4.0.0@alpha",
         "drush/drush": "^9",
-        "openeuropa/code-review": "dev-master",
-        "openeuropa/drupal-core-require-dev": "~8.6",
-        "openeuropa/task-runner": "~0.7"
+        "openeuropa/code-review": "~1.0.0-alpha3@alpha",
+        "openeuropa/drupal-core-require-dev": "8.6.x-dev",
+        "openeuropa/task-runner": "~1.0@alpha"
     },
     "scripts": {
         "drupal-scaffold": "DrupalComposer\\DrupalScaffold\\Plugin::scaffold",
@@ -46,11 +46,6 @@
     },
     "extra": {
         "composer-exit-on-patch-failure": true,
-        "patches": {
-            "drupal/core": {
-                "https://www.drupal.org/project/drupal/issues/2571475": "https://www.drupal.org/files/issues/outbound_http_requests-2571475-10.patch"
-            }
-        },
         "enable-patching": true,
         "installer-paths": {
             "build/core": ["type:drupal-core"],

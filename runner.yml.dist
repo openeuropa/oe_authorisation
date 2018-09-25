@@ -36,7 +36,6 @@ drupal:
         domain: 'Master'
         site_realm_name: 'sitea'
 
-
 authorisation:
   server:
     username: "admin"

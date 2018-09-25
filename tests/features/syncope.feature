@@ -1,4 +1,4 @@
-@api @run
+@api
 Feature: Syncope integration
   In order to handle authorisation centrally
   As a product owner
@@ -60,4 +60,3 @@ Feature: Syncope integration
     And I go to "/user"
     And I click "Edit"
     Then the "Support Engineer" role checkbox should be disabled
-
