@@ -21,12 +21,20 @@ drupal:
     - "./vendor/bin/drush config-set node.settings use_admin_theme 1 -y"
     # Enable the modules.
     # Activate the module later, so the default Bartik blocks are placed.
-    - "./vendor/bin/drush en oe_authorisation -y"
+    - "./vendor/bin/drush en oe_authorisation oe_authorisation_syncope -y"
   settings:
     settings:
       file_scan_ignore_directories:
         - "vendor"
         - "${drupal.root}"
+    config:
+      oe_authorisation_syncope.settings:
+        credentials:
+          username: 'admin'
+          password: 'password'
+        endpoint: 'http://syncope:8080/syncope/rest'
+        domain: 'Master'
+        site_realm_name: 'sitea'
 
 authorisation:
   server:

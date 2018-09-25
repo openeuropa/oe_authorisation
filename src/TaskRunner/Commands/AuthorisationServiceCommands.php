@@ -7,6 +7,7 @@ namespace Drupal\oe_authorisation\TaskRunner\Commands;
 use GuzzleHttp\Client;
 use OpenEuropa\SyncopePhpClient\Api\AnyTypeClassesApi;
 use OpenEuropa\SyncopePhpClient\Api\AnyTypesApi;
+use OpenEuropa\SyncopePhpClient\Api\GroupsApi;
 use OpenEuropa\SyncopePhpClient\Api\RealmsApi;
 use OpenEuropa\SyncopePhpClient\Api\RolesApi;
 use OpenEuropa\SyncopePhpClient\Api\UsersApi;
@@ -15,8 +16,10 @@ use OpenEuropa\SyncopePhpClient\Configuration;
 use OpenEuropa\SyncopePhpClient\Model\AnyTypeClassTO;
 use OpenEuropa\SyncopePhpClient\Api\SchemasApi;
 use OpenEuropa\SyncopePhpClient\Model\AnyTypeTO;
+use OpenEuropa\SyncopePhpClient\Model\GroupTO;
 use OpenEuropa\SyncopePhpClient\Model\RealmTO;
 use OpenEuropa\SyncopePhpClient\Model\RoleTO;
+use OpenEuropa\SyncopePhpClient\Model\UserTO;
 use OpenEuropa\TaskRunner\Commands\AbstractCommands;
 use OpenEuropa\SyncopePhpClient\Model\SchemaTO;
 use Robo\Exception\TaskException;
@@ -120,6 +123,25 @@ class AuthorisationServiceCommands extends AbstractCommands {
       throw new TaskException('Exception when calling rolesApi->createRole: ', $e->getMessage());
     }
 
+    // Provision site engineer global role in root realm.
+    $groupsApi = new GroupsApi(
+      new Client(),
+      $config
+    );
+
+    $groupTo = new GroupTO([
+      'name' => 'support_engineer',
+      'realm' => '/',
+    ]);
+    $groupTo->setClass('org.apache.syncope.common.lib.to.GroupTO');
+
+    try {
+      $groupsApi->createGroup($this->xSyncopeDomain, $groupTo);
+    }
+    catch (ApiException $e) {
+      throw new TaskException('Exception when calling GroupsApi->createGroup: ', $e->getMessage());
+    }
+
   }
 
   /**
@@ -204,15 +226,17 @@ class AuthorisationServiceCommands extends AbstractCommands {
       $config
     );
 
-    $payload = new \stdClass();
-    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.UserTO';
-    $payload->username = 'system-account-' . $siteId;
-    $payload->realm = '/' . $siteId;
-    $payload->password = 'password';
-    $payload->roles = ['system-admin-' . $siteId, 'system-user-site'];
+    $userTo = new UserTO([
+      'username' => 'system-account-' . $siteId,
+      'realm' => '/' . $siteId,
+      'password' => 'password',
+      'roles' => ['system-admin-' . $siteId, 'system-user-site'],
+    ]);
+
+    $userTo->setClass('org.apache.syncope.common.lib.to.UserTO');
 
     try {
-      $usersApi->createUser($this->xSyncopeDomain, $payload);
+      $usersApi->createUser($this->xSyncopeDomain, $userTo, 'return-content', FALSE, NULL);
     }
     catch (ApiException $e) {
       throw new TaskException('Exception when calling usersApi->createUser: ', $e->getMessage());

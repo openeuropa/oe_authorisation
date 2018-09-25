@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * @file
+ * The OpenEuropa Authorisation Syncope module.
+ */
+
+declare(strict_types = 1);
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\oe_authorisation_syncope\Exception\SyncopeLoginException;
+use Drupal\oe_authorisation_syncope\Exception\SyncopeUserException;
+use Drupal\user\RoleInterface;
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_entity_presave().
+ */
+function oe_authorisation_syncope_entity_presave(EntityInterface $entity) {
+  if ($entity instanceof RoleInterface) {
+    \Drupal::service('oe_authorisation_syncope.role_mapper')->preSave($entity);
+    return;
+  }
+
+  if ($entity instanceof UserInterface) {
+    \Drupal::service('oe_authorisation_syncope.user_mapper')->preSave($entity);
+    return;
+  }
+}
+
+/**
+ * Implements hook_entity_predelete().
+ */
+function oe_authorisation_syncope_entity_predelete(EntityInterface $entity) {
+  if ($entity instanceof RoleInterface) {
+    \Drupal::service('oe_authorisation_syncope.role_mapper')->preDelete($entity);
+    return;
+  }
+
+  if ($entity instanceof UserInterface) {
+    \Drupal::service('oe_authorisation_syncope.user_mapper')->preDelete($entity);
+    return;
+  }
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function oe_authorisation_syncope_user_login($account) {
+  try {
+    \Drupal::service('oe_authorisation_syncope.user_mapper')->login($account);
+  }
+  catch (SyncopeLoginException $exception) {
+    user_logout();
+    \Drupal::messenger()->addError(t('There was a problem logging you into the site.'));
+  }
+}
+
+/**
+ * Implements hook_entity_base_field_info().
+ */
+function oe_authorisation_syncope_entity_base_field_info(EntityTypeInterface $entity_type) {
+  if ($entity_type->id() !== 'user') {
+    return NULL;
+  }
+
+  $fields = [];
+
+  $fields['syncope_uuid'] = BaseFieldDefinition::create('string')
+    ->setLabel(t('Syncope UUID'))
+    ->setDescription(t('The UUID of this User in Syncope.'));
+
+  return $fields;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the Account form.
+ *
+ * When someone wants to change the roles of a user, we need to ensure we have
+ * an up-to-date status of the roles as they are in Syncope.
+ */
+function oe_authorisation_syncope_form_user_form_alter(&$form, FormStateInterface $form_state): void {
+  /** @var \Drupal\user\ProfileForm $profile_form */
+  $profile_form = $form_state->getBuildInfo()['callback_object'];
+  /** @var \Drupal\user\UserInterface $user */
+  $user = $profile_form->getEntity();
+
+  $uuid = $user->get('syncope_uuid')->value;
+  if (!$uuid) {
+    return;
+  }
+
+  /** @var \Drupal\oe_authorisation_syncope\SyncopeRoleMapper $role_mapper */
+  $role_mapper = \Drupal::service('oe_authorisation_syncope.role_mapper');
+
+  try {
+    $roles = $role_mapper->getUserDrupalRolesFromSyncope($user);
+    $form['account']['roles']['#default_value'] = $roles;
+  }
+  catch (SyncopeUserException $e) {
+    \Drupal::messenger()->addError('There is a problem with the authorisation service. User roles cannot be updated.');
+    $form['account']['roles']['#disabled'] = TRUE;
+  }
+}

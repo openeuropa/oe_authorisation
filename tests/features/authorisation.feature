@@ -45,7 +45,7 @@ Feature: User authorisation
       | admin/structure/types/add    |
 
   Scenario Outline: Support Engineers can access some administration pages
-    Given I am logged in as a user with the "support_engineer" role
+    Given I am logged in as a user with the global "support_engineer" role
     Then I go to "<path>"
     Then I should be able to access the page
 
@@ -57,7 +57,7 @@ Feature: User authorisation
 
   Scenario Outline: Support Engineers cannot access user management related
     administration pages
-    Given I am logged in as a user with the "support_engineer" role
+    Given I am logged in as a user with the global "support_engineer" role
     Then I go to "<path>"
     Then I should not be able to access the page
 

@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * The OpenEuropa Authorisation module.
+ */
+
+declare(strict_types = 1);
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\RoleInterface;
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the Account form.
+ */
+function oe_authorisation_form_user_form_alter(&$form, FormStateInterface $form_state): void {
+  // Find the global user roles.
+  $roles = array_filter(user_roles(), function (RoleInterface $role) {
+    return (bool) $role->getThirdPartySetting('oe_authorisation', 'global', FALSE);
+  });
+
+  if (!$roles) {
+    return;
+  }
+
+  // Unset the global roles from the list of assignable roles.
+  foreach ($form['account']['roles']['#options'] as $machine => $name) {
+    if (in_array($machine, array_keys($roles))) {
+      $form['account']['roles'][$machine]['#disabled'] = TRUE;
+    }
+  }
+}

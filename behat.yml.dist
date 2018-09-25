@@ -6,6 +6,7 @@ default:
       contexts:
         - Drupal\DrupalExtension\Context\MinkContext
         - Drupal\Tests\oe_authorisation\Behat\FeatureContext
+        - Drupal\Tests\oe_authorisation\Behat\SyncopeContext
   extensions:
     Behat\MinkExtension:
       goutte: ~

@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * @file
+ * OpenEuropa Syncope Authorisation install file.
+ */
+
+declare(strict_types = 1);
+
+/**
+ * Implements hook_install().
+ */
+function oe_authorisation_syncope_install() {
+  $config = \Drupal::configFactory()->getEditable('oe_authorisation_syncope.settings');
+
+  /** @var \Drupal\oe_authorisation_syncope\SyncopeClient $client */
+  $client = \Drupal::service('oe_authorisation_syncope.client');
+  $realm = $client->getSiteRealm();
+  $config->set('root_realm_uuid', $realm->getParent());
+  $config->set('site_realm_uuid', $realm->getUuid());
+  $config->save();
+
+  $roles = \Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple();
+  $excluded = [
+    'authenticated',
+    'anonymous',
+  ];
+
+  foreach ($roles as $role) {
+    if (in_array($role->id(), $excluded)) {
+      continue;
+    }
+
+    $role->save();
+  }
+}
