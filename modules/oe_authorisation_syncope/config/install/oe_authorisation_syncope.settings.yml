@@ -3,6 +3,4 @@ credentials:
   password: ''
 endpoint: ''
 site_realm_name: ''
-site_realm_uuid: ''
-root_realm_uuid: ''
 domain: 'Master'

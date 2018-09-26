@@ -6,6 +6,7 @@ namespace Drupal\oe_authorisation_syncope;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\State\StateInterface;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeGroupNotFoundException;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeUserException;
 use Drupal\user\RoleInterface;
@@ -38,6 +39,13 @@ class SyncopeRoleMapper {
   protected $logger;
 
   /**
+   * The State API.
+   *
+   * @var \Drupal\Core\State\StateInterface
+   */
+  protected $state;
+
+  /**
    * SyncopeRoleMapper constructor.
    *
    * @param \Drupal\oe_authorisation_syncope\SyncopeClient $client
@@ -46,11 +54,14 @@ class SyncopeRoleMapper {
    *   The entity type manager.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   The logger channel factory.
+   * @param \Drupal\Core\State\StateInterface $state
+   *   The State API.
    */
-  public function __construct(SyncopeClient $client, EntityTypeManagerInterface $entityTypeManager, LoggerChannelFactoryInterface $loggerChannelFactory) {
+  public function __construct(SyncopeClient $client, EntityTypeManagerInterface $entityTypeManager, LoggerChannelFactoryInterface $loggerChannelFactory, StateInterface $state) {
     $this->client = $client;
     $this->entityTypeManager = $entityTypeManager;
     $this->logger = $loggerChannelFactory->get('oe_authorisation_syncope');
+    $this->state = $state;
   }
 
   /**
@@ -63,10 +74,6 @@ class SyncopeRoleMapper {
    *   The user role.
    */
   public function preSave(RoleInterface $role): void {
-    if (\Drupal::configFactory()->get('oe_authorisation_syncope.settings')->get('site_realm_uuid') == "") {
-      return;
-    }
-
     // We do not map global roles as they are created during provisioning or
     // directly in the Syncope service.
     if ($role->getThirdPartySetting('oe_authorisation', 'global', FALSE)) {
@@ -96,13 +103,14 @@ class SyncopeRoleMapper {
    *   The user role.
    */
   public function preDelete(RoleInterface $role): void {
-    $uuid = $role->getThirdPartySetting('oe_authorisation_syncope', 'syncope_group');
+    $uuid = $this->getRoleUuid($role);
     if (!$uuid) {
       $this->logger->info('A role was deleted but had no UUID to delete its Syncope counterpart: ' . $role->id());
       return;
     }
 
     $this->client->deleteGroup($uuid);
+    $this->state->delete('oe_authorisation_syncope.role_uuid.' . $role->id());
   }
 
   /**
@@ -121,7 +129,7 @@ class SyncopeRoleMapper {
 
     /** @var \Drupal\user\RoleInterface $role */
     foreach ($role_entities as $role) {
-      $group_id = $role->getThirdPartySetting('oe_authorisation_syncope', 'syncope_group', NULL);
+      $group_id = $this->getRoleUuid($role);
       if (!$group_id) {
         continue;
       }
@@ -167,6 +175,31 @@ class SyncopeRoleMapper {
   }
 
   /**
+   * Returns the Syncope UUID for a given role into the State API.
+   *
+   * @param \Drupal\user\RoleInterface $role
+   *   The role.
+   *
+   * @return string|null
+   *   The UUID.
+   */
+  public function getRoleUuid(RoleInterface $role):? string {
+    return $this->state->get('oe_authorisation_syncope.role_uuid.' . $role->id());
+  }
+
+  /**
+   * Sets the Syncope UUID for a given role into the State API.
+   *
+   * @param \Drupal\user\RoleInterface $role
+   *   The Role.
+   * @param string $uuid
+   *   The UUID.
+   */
+  public function setRoleUuid(RoleInterface $role, string $uuid): void {
+    $this->state->set('oe_authorisation_syncope.role_uuid.' . $role->id(), $uuid);
+  }
+
+  /**
    * Maps a new role when it first gets created.
    *
    * We allow the exception to be thrown to prevent the role from being
@@ -177,22 +210,22 @@ class SyncopeRoleMapper {
    */
   protected function mapNewRole(RoleInterface $role): void {
     try {
-      $id = $role->getThirdPartySetting('oe_authorisation_syncope', 'syncope_group', NULL);
+      $id = $this->getRoleUuid($role);
       if ($id) {
         $group = $this->client->getGroup($id);
         // If found, we do nothing in Syncope but we do set the Group ID.
-        $role->setThirdPartySetting('oe_authorisation_syncope', 'syncope_group', $group->getUuid());
+        $this->setRoleUuid($role, $group->getUuid());
         return;
       }
       // If the ID is NULL, we try by name. Normally this should not be needed
       // but just in case the role already exists on the Syncope instance.
       $group = $this->client->getGroup($role->id(), SyncopeClient::GROUP_IDENTIFIER_NAME);
       // Just in case the group is already there but no UUID has been set.
-      $role->setThirdPartySetting('oe_authorisation_syncope', 'syncope_group', $group->getUuid());
+      $this->setRoleUuid($role, $group->getUuid());
     }
     catch (SyncopeGroupNotFoundException $e) {
       $group = $this->client->createGroup($role->id());
-      $role->setThirdPartySetting('oe_authorisation_syncope', 'syncope_group', $group->getUuid());
+      $this->setRoleUuid($role, $group->getUuid());
     }
   }
 

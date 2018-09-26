@@ -10,6 +10,7 @@ use Drupal\DrupalExtension\Context\RawDrupalContext;
 use Drupal\oe_authorisation_syncope\Syncope\SyncopeGroup;
 use Drupal\oe_authorisation_syncope\Syncope\SyncopeUser;
 use Drupal\oe_authorisation_syncope\SyncopeClient;
+use Drupal\oe_authorisation_syncope\SyncopeRoleMapper;
 use Drupal\user\RoleInterface;
 use Drupal\user\UserInterface;
 
@@ -31,6 +32,13 @@ class SyncopeContext extends RawDrupalContext {
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManger;
+
+  /**
+   * The role mapper.
+   *
+   * @var \Drupal\oe_authorisation_syncope\SyncopeRoleMapper
+   */
+  protected $roleMapper;
 
   /**
    * The list of Syncope users to clear.
@@ -65,6 +73,20 @@ class SyncopeContext extends RawDrupalContext {
     }
 
     return $this->entityTypeManger;
+  }
+
+  /**
+   * Returns the role mapper.
+   *
+   * @return \Drupal\oe_authorisation_syncope\SyncopeRoleMapper
+   *   The role mapper.
+   */
+  protected function getRoleMapper(): SyncopeRoleMapper {
+    if (!$this->roleMapper) {
+      $this->roleMapper = \Drupal::service('oe_authorisation_syncope.role_mapper');
+    }
+
+    return $this->roleMapper;
   }
 
   /**
@@ -119,7 +141,7 @@ class SyncopeContext extends RawDrupalContext {
 
     $role = NULL;
     $role_entity = $this->loadRoleByName($role_name);
-    $role = $role_entity->getThirdPartySetting('oe_authorisation_syncope', 'syncope_group', NULL);
+    $role = $this->getRoleMapper()->getRoleUuid($role_entity);
     $is_global = is_null($role);
 
     // In case the role is global, we need to create a global user for this user
@@ -152,7 +174,7 @@ class SyncopeContext extends RawDrupalContext {
 
     $role = NULL;
     $role_entity = $this->loadRoleByName($role_name);
-    $role = $role_entity->getThirdPartySetting('oe_authorisation_syncope', 'syncope_group', NULL);
+    $role = $this->getRoleMapper()->getRoleUuid($role_entity);
     $is_global = is_null($role);
 
     // In case the role is global, we need to load the user also from the root
@@ -248,7 +270,7 @@ class SyncopeContext extends RawDrupalContext {
    */
   public function assertRoleExistsInSyncope(string $role): void {
     $role_entity = $this->loadRoleByName($role);
-    $group = $this->getSyncopeClient()->getGroup($role_entity->getThirdPartySetting('oe_authorisation_syncope', 'syncope_group'));
+    $group = $this->getSyncopeClient()->getGroup($this->getRoleMapper()->getRoleUuid($role_entity));
     if (!$group instanceof SyncopeGroup) {
       throw new \Exception('The role could not be found in Syncope.');
     }
@@ -279,7 +301,7 @@ class SyncopeContext extends RawDrupalContext {
         foreach ($syncope_user->getGroups() as $uuid) {
           $existing_roles[] = $role_entities[$this->getSyncopeClient()->getGroup($uuid)->getDrupalName()]->label();
         }
-        throw new \Exception(sprintf('The user %s has the Syncope roles %s but should have the roles %s', $name, implode(', ', $existing_roles), implode(', ', $roles)));
+        throw new \Exception(sprintf('The user %s has the Syncope roles %s but should have the roles %s', $name, implode(', ', $existing_roles), $roles));
       }
 
       return;
@@ -378,7 +400,7 @@ class SyncopeContext extends RawDrupalContext {
   protected function getSyncopeGroupUuidsFromRoles(array $roles) {
     $uuids = [];
     foreach ($roles as $entity) {
-      $group_id = $entity->getThirdPartySetting('oe_authorisation_syncope', 'syncope_group', NULL);
+      $group_id = $this->getRoleMapper()->getRoleUuid($entity);
       if (!$group_id) {
         continue;
       }

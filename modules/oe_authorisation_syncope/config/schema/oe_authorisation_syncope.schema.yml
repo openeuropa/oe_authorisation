@@ -18,20 +18,6 @@ oe_authorisation_syncope.settings:
     site_realm_name:
       type: string
       label: 'The site realm in Syncope'
-    site_realm_uuid:
-      type: string
-      label: 'The UUID of the site realm in Syncope'
-    root_realm_uuid:
-      type: string
-      label: 'The UUID of the root realm in Syncope'
     domain:
       type: string
       label: 'The Syncope domain'
-
-user.role.*.third_party.oe_authorisation_syncope:
-  type: mapping
-  label: 'OpenEuropa Authorisation Syncope module settings on the Role entities'
-  mapping:
-    syncope_group:
-      type: string
-      label: 'The UUID of the Syncope Group that maps to this Role'

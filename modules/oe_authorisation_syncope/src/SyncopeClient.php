@@ -7,6 +7,7 @@ namespace Drupal\oe_authorisation_syncope;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\State\StateInterface;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeException;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeGroupException;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeGroupNotFoundException;
@@ -85,11 +86,25 @@ class SyncopeClient {
   protected $logger;
 
   /**
+   * The State API.
+   *
+   * @var \Drupal\Core\State\StateInterface
+   */
+  protected $state;
+
+  /**
    * The Drupal config object for Syncope.
    *
    * @var \Drupal\Core\Config\Config
    */
   protected $config;
+
+  /**
+   * Stores the UUIDs of the Syncope realms.
+   *
+   * @var array
+   */
+  protected $syncopeRealmUuids = [];
 
   /**
    * SyncopeClient constructor.
@@ -100,8 +115,10 @@ class SyncopeClient {
    *   The HTTP client.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   The logger channel factory.
+   * @param \Drupal\Core\State\StateInterface $state
+   *   The State API.
    */
-  public function __construct(ConfigFactoryInterface $configFactory, ClientInterface $client, LoggerChannelFactoryInterface $loggerChannelFactory) {
+  public function __construct(ConfigFactoryInterface $configFactory, ClientInterface $client, LoggerChannelFactoryInterface $loggerChannelFactory, StateInterface $state) {
     $this->client = $client;
     $this->config = $configFactory->get('oe_authorisation_syncope.settings');
     $this->configuration = Configuration::getDefaultConfiguration()
@@ -111,6 +128,46 @@ class SyncopeClient {
     $this->syncopeDomain = $this->config->get('domain');
     $this->siteRealm = $this->config->get('site_realm_name');
     $this->logger = $loggerChannelFactory->get('oe_authorisation_syncope');
+    $this->state = $state;
+  }
+
+  /**
+   * Returns the UUID of a given realm.
+   *
+   * @param string $realm
+   *   The realm to get the UUID for.
+   *
+   * @return string|null
+   *   The UUID.
+   */
+  protected function getRealmUuid(string $realm):? string {
+    $this->ensureRealmUuids();
+    return isset($this->syncopeRealmUuids[$realm]) ? $this->syncopeRealmUuids[$realm] : NULL;
+  }
+
+  /**
+   * Ensures that the UUIDs of the Syncope realms are stored.
+   */
+  protected function ensureRealmUuids(): void {
+    if (!empty($this->syncopeRealmUuids)) {
+      return;
+    }
+
+    $site_realm_uuid = $this->state->get('oe_authorisation_syncope.site_realm_uuid');
+    $root_realm_uuid = $this->state->get('oe_authorisation_syncope.root_realm_uuid');
+    if ($site_realm_uuid && $root_realm_uuid) {
+      $this->syncopeRealmUuids['site'] = $site_realm_uuid;
+      $this->syncopeRealmUuids['root'] = $root_realm_uuid;
+      return;
+    }
+
+    $realm = $this->getSiteRealm();
+    $site_realm_uuid = $realm->getUuid();
+    $root_realm_uuid = $realm->getParent();
+    $this->syncopeRealmUuids['site'] = $site_realm_uuid;
+    $this->syncopeRealmUuids['root'] = $root_realm_uuid;
+    $this->state->set('oe_authorisation_syncope.site_realm_uuid', $site_realm_uuid);
+    $this->state->set('oe_authorisation_syncope.root_realm_uuid', $root_realm_uuid);
   }
 
   /**
@@ -121,7 +178,7 @@ class SyncopeClient {
    *
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeException
    */
-  public function getSiteRealm() {
+  protected function getSiteRealm(): SyncopeRealm {
     $api = new RealmsApi($this->client, $this->configuration);
 
     try {
@@ -189,7 +246,7 @@ class SyncopeClient {
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeGroupException
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeGroupNotFoundException
    */
-  public function getGroup(string $identifier, $identifier_type = self::GROUP_IDENTIFIER_UUID) {
+  public function getGroup(string $identifier, $identifier_type = self::GROUP_IDENTIFIER_UUID): SyncopeGroup {
     $api = new GroupsApi($this->client, $this->configuration);
     if ($identifier_type === self::GROUP_IDENTIFIER_NAME) {
       $identifier .= '@' . $this->siteRealm;
@@ -436,11 +493,11 @@ class SyncopeClient {
    * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser[]
    *   The list of users.
    */
-  public function getAllUsers(string $eu_login, array $realms = []) {
+  public function getAllUsers(string $eu_login, array $realms = []): array {
     if (empty($realms)) {
       $realms = [
-        $this->config->get('root_realm_uuid'),
-        $this->config->get('site_realm_uuid'),
+        $this->getRealmUuid('root'),
+        $this->getRealmUuid('site'),
       ];
     }
     $realms_fiql = '(';
@@ -496,7 +553,7 @@ class SyncopeClient {
    * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeGroup[]
    *   The Syncope group object.
    */
-  public function getAllUserGroups(string $eu_login, array $realms = []) {
+  public function getAllUserGroups(string $eu_login, array $realms = []): array {
     $users = $this->getAllUsers($eu_login, $realms);
 
     $groups = [];
