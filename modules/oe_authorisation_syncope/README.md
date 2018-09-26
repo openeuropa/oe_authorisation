@@ -4,14 +4,14 @@ The OpenEuropa Authorisation Syncope module controls the integration of Drupal w
  
  
 Out of the box the modules provides:
-- Site role synchronization with Syncope.
-- Global role support for roles coming from Syncope.
-- User role synchronizaton when users login.
+- Site-level role synchronization with Syncope.
+- Global role support for cross-enterprise role assignment.
+- User role synchronisation upon login.
 
 It interacts with Syncope in the following situations:
 - Site Role is created/update/deleted.
 - User logs in.
-- User is edited.
+- User is created/edited.
 
 It uses the following configuration to interact with Syncope:
 - Apache Syncope API endpoint
@@ -21,14 +21,14 @@ It uses the following configuration to interact with Syncope:
 - Apache Syncope site realm
 
 ## Architecture and concepts
-The module relies on [Syncope PHP Client](https://github.com/openeuropa/syncope-php-client) to interface with Apache Syncope API.
+The module relies on [Syncope PHP Client](https://github.com/openeuropa/syncope-php-client) to interface with the Apache Syncope API.
 
-The module intersects role creation/update/delete in Drupal and creates an associated entity in Syncope to represent the role (group). 
-It extends the role entity in order to store the Syncope UUID of the group in the associated role. 
-It extends the user entity to store the Syncope UUID assocatiated with the user in the site context so it can be maintained in sync.
+- The module hooks into the role creation/update/delete process in Drupal and creates an associated object in Syncope to represent the role (in Syncope this is called a `group`). 
+- It extends the Drupal role entity in order to store the UUID of the corresponding Syncope group. 
+- It extends the Drupal user entity in order to store the UUID of the corresponding Syncope user.
 
 ### General site structure in Syncope
-Web sites are represented in Syncope as realms organized hierachically:
+Websites are represented in Syncope as realms organized hierarchically (starting from a root realm represented by `/`):
 
 - /
   - /siteA
@@ -39,21 +39,27 @@ Each website has a system account with enough permissions to manage objects in t
 
 The following concepts are directly mapped between Drupal and Syncope and are maintained in sync.
 
-- Each Drupal site has realm *in Syncope*
-- Each Drupal site has a system user with permissions to manage the associated realm *in Syncope*
-- Each role in Drupal maps to a group inside a realm *in Syncope*
-- Each user in Drupal maps to an OeUSer object in a realm associated with eulogin id *in Syncope*.
+- Each Drupal site maps to a realm in Syncope
+- Each Drupal site has a system user with permissions to manage the associated realm in Syncope
+- Each role in Drupal maps to a group inside a site-level realm in Syncope
+- Each user in Drupal maps to an OeUSer object inside a site-level realm in Syncope, which also stores an EULogin ID used for linking user objects across realms.
 
-### Site roles
-Site roles are speficic per sites and can vary amongst all sites. Any time a site role is created it gets synchronized with Syncope and can be assigned to users in the context of the site, and directly from site admin UI.
+### Two types of roles
 
-### Global roles
-Global roles are defined in the context of the base realm and represent a role the user assumes in all sites. It can be used for roles that are transversal to all sites like support engineer.
-Global roles are managed in syncope directly and are only consumed by Drupal at login time.
+#### Site-level roles
+Site level roles are mapped to Syncope within the realm associated with that site. The naming convention followed in Syncope for these is `[drupal_role_name]@[site_realm_name]`. 
+
+#### Global roles
+Global roles are mapped to Syncope within the root realm. The naming convention followed in Syncope for these is `[drupal_role_name]`.
 
 ### User role mapping
-User role mapping management is done from the Drupal admin UI, but role mapping is saved behind the scenes in Syncope.
-Global roles are not assignable using the Drupal UI as they are managed outside of the website context.
+Site-level roles can be assigned to users both in Drupal and in Syncope. The single point of truth for this mapping, however, lies in Syncope. For this reason, when attempting to map roles in Drupal, the roles of that user are refreshed to reflect the current status in Syncope.
+
+Global roles cannot be assigned from Drupal. They exist in each Drupal site connected to Syncope but they can only be assigned to a user from Syncope. 
+
+Assigning global roles to a user  is intended to propagate to that user across all thr sites it uses. In order for this to happen, the role is assigned in Syncope to a global user object that has the intended EU Login ID (link between site-level and global-level user objects).
+
+Upon logging in on any Drupal site, this global role is then assigned to the user based on this link.
 
 ### Permissions
 Permissions associated with roles are exclusively managed by Drupal and can vary from site to site.
