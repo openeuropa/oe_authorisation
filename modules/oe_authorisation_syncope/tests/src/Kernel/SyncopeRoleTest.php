@@ -26,11 +26,8 @@ class SyncopeRoleTest extends SyncopeTestBase {
     /** @var \Drupal\user\RoleInterface $role */
     $role = $this->container->get('entity_type.manager')->getStorage('user_role')->load('my_test_role');
 
-    // Assert we have a Syncope UUID.
-    $uuid = $role->getThirdPartySetting('oe_authorisation_syncope', 'syncope_group', "");
-    $this->assertNotEmpty($uuid);
-
     // Check in Syncope that we have the role by UUID.
+    $uuid = \Drupal::service('oe_authorisation_syncope.role_mapper')->getRoleUuid($role);
     $group = $this->getClient()->getGroup($uuid);
     $this->assertInstanceOf(SyncopeGroup::class, $group);
 
@@ -60,8 +57,6 @@ class SyncopeRoleTest extends SyncopeTestBase {
     $role->save();
 
     // Assert no role got created.
-    $uuid = $uuid = $role->getThirdPartySetting('oe_authorisation_syncope', 'syncope_group', "");
-    $this->assertEquals("", $uuid);
     try {
       $this->getClient()->getGroup($role->id(), SyncopeClient::GROUP_IDENTIFIER_NAME);
       $this->fail('The group was found and should not be');

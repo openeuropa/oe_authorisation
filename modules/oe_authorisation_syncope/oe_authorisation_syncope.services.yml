@@ -4,7 +4,7 @@ services:
     arguments: ['@config.factory', '@http_client', '@logger.factory', '@state']
   oe_authorisation_syncope.role_mapper:
     class: Drupal\oe_authorisation_syncope\SyncopeRoleMapper
-    arguments: ['@oe_authorisation_syncope.client', '@entity_type.manager', '@logger.factory']
+    arguments: ['@oe_authorisation_syncope.client', '@entity_type.manager', '@logger.factory', '@state']
   oe_authorisation_syncope.user_mapper:
     class: Drupal\oe_authorisation_syncope\SyncopeUserMapper
     arguments: ['@oe_authorisation_syncope.client', '@oe_authorisation_syncope.role_mapper', '@logger.factory']

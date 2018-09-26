@@ -21,11 +21,3 @@ oe_authorisation_syncope.settings:
     domain:
       type: string
       label: 'The Syncope domain'
-
-user.role.*.third_party.oe_authorisation_syncope:
-  type: mapping
-  label: 'OpenEuropa Authorisation Syncope module settings on the Role entities'
-  mapping:
-    syncope_group:
-      type: string
-      label: 'The UUID of the Syncope Group that maps to this Role'
