@@ -113,7 +113,7 @@ class AuthorisationServiceCommands extends AbstractCommands {
       'entitlements' => [
         'OeUser_SEARCH',
         'OeUser_READ',
-        'GROUP_SEARCH',
+        'GROUP_READ',
       ],
     ]);
 
