@@ -63,10 +63,6 @@ class SyncopeRoleMapper {
    *   The user role.
    */
   public function preSave(RoleInterface $role): void {
-    if (\Drupal::configFactory()->get('oe_authorisation_syncope.settings')->get('site_realm_uuid') == "") {
-      return;
-    }
-
     // We do not map global roles as they are created during provisioning or
     // directly in the Syncope service.
     if ($role->getThirdPartySetting('oe_authorisation', 'global', FALSE)) {
