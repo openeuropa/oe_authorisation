@@ -369,13 +369,15 @@ class SyncopeClient {
    *
    * @param \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser $user
    *   The Syncope user.
+   * @param bool $update_role
+   *   Whether to update the roles as well. By default we don't update roles.
    *
    * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser
    *   The Syncope user.
    *
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeUserException
    */
-  public function updateUser(SyncopeUser $user): SyncopeUser {
+  public function updateUser(SyncopeUser $user, $update_role = FALSE): SyncopeUser {
     if ($user->getUuid() == "") {
       $this->logger->error(sprintf('There user %s could not be updated because the UUID is missing.', $user->getName()));
       throw new SyncopeUserException('Missing UUID for updating the user.');
@@ -383,31 +385,35 @@ class SyncopeClient {
 
     $api = new AnyObjectsApi($this->client, $this->configuration);
 
-    $memberships = [];
-    foreach ($user->getGroups() as $role) {
-      $memberships[] = [
-        'groupKey' => $role,
-      ];
-    }
-
     $username = $user->getName() . '@' . $this->siteRealm;
     $payload = new \stdClass();
-    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.AnyObjectTO';
-    $payload->realm = '/' . $this->siteRealm;
-    $payload->memberships = $memberships;
-    $payload->name = $username;
-    $payload->type = 'OeUser';
     $payload->key = $user->getUuid();
+    $payload->{'@class'} = 'org.apache.syncope.common.lib.patch.AnyObjectPatch';
+    $payload->name = [
+      'operation' => 'ADD_REPLACE',
+      'value' => $username,
+    ];
+
+    if ($update_role) {
+      $memberships = $this->prepareMembershipsPatch($user);
+      if ($memberships) {
+        $payload->memberships = $memberships;
+      }
+    }
+
     // @todo move this out of here and set the EULogin ID dynamically.
     $payload->plainAttrs = [
       [
-        'schema' => 'eulogin_id',
-        'values' => [$user->getName()],
-      ],
+        'operation' => 'ADD_REPLACE',
+        'attrTO' => [
+          'schema' => 'eulogin_id',
+          'values' => [$user->getName()],
+        ]
+      ]
     ];
 
     try {
-      $response = $api->updateAnyObject($user->getUuid(), $this->syncopeDomain, $payload);
+      $response = $api->updateAnyObjectPartial($user->getUuid(), $this->syncopeDomain, $payload);
     }
     catch (\Exception $e) {
       $this->logger->error(sprintf('There was a problem updating the user %s: %s.', $user->getName(), $e->getMessage()));
@@ -645,6 +651,36 @@ class SyncopeClient {
       $this->logger->error(sprintf('There was a problem creating the user %s.', $user->getName()));
       throw new SyncopeUserException('There was a problem updating the user.');
     }
+  }
+
+  /**
+   * Prepares the membership patch data for a user role update.
+   *
+   * @param \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser $user
+   *
+   * @return array
+   */
+  protected function prepareMembershipsPatch(SyncopeUser $user): array {
+    $memberships = [];
+    $existing_user = $this->getUser($user->getUuid());
+    $existing_memberships = $existing_user->getGroups();
+
+    $to_delete = array_diff($existing_memberships, $user->getGroups());
+    foreach ($to_delete as $uuid) {
+      $memberships[] = [
+        'operation' => 'DELETE',
+        'group' => $uuid
+      ];
+    }
+
+    foreach ($user->getGroups() as $group) {
+      $memberships[] = [
+        'operation' => 'ADD_REPLACE',
+        'group' => $group
+      ];
+    }
+
+    return $memberships;
   }
 
 }

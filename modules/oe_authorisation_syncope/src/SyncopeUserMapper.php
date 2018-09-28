@@ -146,8 +146,8 @@ class SyncopeUserMapper {
       $syncope_user = $this->client->getUser($user->label(), SyncopeClient::USER_IDENTIFIER_USERNAME);
     }
     catch (SyncopeUserNotFoundException $e) {
-      $roles = $this->roleMapper->getRolesForUser($user);
-      $object = new SyncopeUser('', $user->label(), $roles);
+      // We don't send any roles to Syncope.
+      $object = new SyncopeUser('', $user->label(), []);
       $syncope_user = $this->client->createUser($object);
     }
 
@@ -175,8 +175,8 @@ class SyncopeUserMapper {
       return;
     }
 
-    $roles = $this->roleMapper->getRolesForUser($user);
-    $syncope_user = new SyncopeUser($uuid, $user->label(), $roles);
+    // We don't update the roles in Syncope.
+    $syncope_user = new SyncopeUser($uuid, $user->label(), []);
     $this->client->updateUser($syncope_user);
   }
 
