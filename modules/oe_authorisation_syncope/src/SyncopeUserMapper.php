@@ -91,30 +91,41 @@ class SyncopeUserMapper {
   }
 
   /**
-   * Acts on the "user_login" hook.
+   * Acts on the "login" hook.
    *
-   * Syncs the roles from Syncope with the ones of the user in Drupal. If
-   * Syncope could not be accessed, an exception is thrown the prevent the user
-   * from logging in.
+   * Syncs the roles from Syncope with the ones of the user in Drupal. We
+   * don't even have to make a call to Syncope because that is taken care of
+   * inside SyncopeUserMapper::load().
+   *
+   * We use this to actually save the roles in Drupal when the user logs in
+   * because many of the Drupal access checkers are using the UserSession
+   * service which bypasses entity loads and directly queries the database
+   * tables to look for the roles.
    *
    * @param \Drupal\user\UserInterface $user
    *   The user.
    */
   public function login(UserInterface $user): void {
+    $storage = \Drupal::entityTypeManager()->getStorage('user');
+    $storage->resetCache([$user->id()]);
+    $user = $storage->load($user->id());
+    $user->save();
+  }
+
+  /**
+   * Acts on the "entity_load" hook.
+   *
+   * Syncs the roles from Syncope with the ones of the user in Drupal. If
+   * Syncope could not be accessed, an exception is thrown and we prevent
+   * any roles being added to the user.
+   *
+   * @param \Drupal\user\UserInterface $user
+   *   The user.
+   */
+  public function load(UserInterface $user): void {
     $uuid = $user->get('syncope_uuid')->value;
     if (!$uuid) {
       // We do nothing here, not even log.
-      return;
-    }
-
-    try {
-      // Currently the Eu Login ID is the username in Drupal.
-      $groups = $this->client->getAllUserGroups($user->label());
-    }
-    catch (SyncopeUserNotFoundException $e) {
-      $this->logger->info('The user that logged in could not be found in Syncope: ' . $user->id());
-      // In this we don't try to map anything with Syncope cause the user does
-      // not exist.
       return;
     }
 
@@ -122,12 +133,23 @@ class SyncopeUserMapper {
       'authenticated',
     ];
 
+    try {
+      // Currently the Eu Login ID is the username in Drupal.
+      $groups = $this->client->getAllUserGroups($user->label());
+    }
+    catch (SyncopeUserNotFoundException $e) {
+      $this->logger->info('The user that logged in could not be found in Syncope: ' . $user->id());
+      // If the user doesn't exist, we remove its roles in case it had any just
+      // to prevent them from potentially accessing forbidden things.
+      $user->set('roles', $roles);
+      return;
+    }
+
     foreach ($groups as $group) {
       $roles[] = $group->getDrupalName();
     }
 
     $user->set('roles', $roles);
-    $user->save();
   }
 
   /**

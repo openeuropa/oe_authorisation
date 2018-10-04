@@ -50,13 +50,22 @@ function oe_authorisation_syncope_entity_predelete(EntityInterface $entity) {
  * Implements hook_user_login().
  */
 function oe_authorisation_syncope_user_login($account) {
-  try {
-    \Drupal::service('oe_authorisation_syncope.user_mapper')->login($account);
+  \Drupal::service('oe_authorisation_syncope.user_mapper')->login($account);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_storage_load() for the User entity type.
+ */
+function oe_authorisation_syncope_user_storage_load(array $entities) {
+  foreach ($entities as $entity) {
+    try {
+      \Drupal::service('oe_authorisation_syncope.user_mapper')->load($entity);
+    }
+    catch (SyncopeLoginException $exception) {
+      // We do nothing in this case.
+    }
   }
-  catch (SyncopeLoginException $exception) {
-    user_logout();
-    \Drupal::messenger()->addError(t('There was a problem logging you into the site.'));
-  }
+
 }
 
 /**
