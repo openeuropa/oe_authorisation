@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\oe_authorisation_syncope;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeUserNotFoundException;
 use Drupal\oe_authorisation_syncope\Syncope\SyncopeUser;
@@ -36,6 +37,13 @@ class SyncopeUserMapper {
   protected $logger;
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * SyncopeRoleMapper constructor.
    *
    * @param \Drupal\oe_authorisation_syncope\SyncopeClient $client
@@ -44,12 +52,14 @@ class SyncopeUserMapper {
    *   The role mapper.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   The logger channel factory.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
    */
-  public function __construct(SyncopeClient $client, SyncopeRoleMapper $roleMapper, LoggerChannelFactoryInterface $loggerChannelFactory) {
+  public function __construct(SyncopeClient $client, SyncopeRoleMapper $roleMapper, LoggerChannelFactoryInterface $loggerChannelFactory, EntityTypeManagerInterface $entityTypeManager) {
     $this->client = $client;
     $this->roleMapper = $roleMapper;
     $this->logger = $loggerChannelFactory->get('oe_authorisation_syncope');
-
+    $this->entityTypeManager = $entityTypeManager;
   }
 
   /**
@@ -106,7 +116,7 @@ class SyncopeUserMapper {
    *   The user.
    */
   public function login(UserInterface $user): void {
-    $storage = \Drupal::entityTypeManager()->getStorage('user');
+    $storage = $this->entityTypeManager->getStorage('user');
     $storage->resetCache([$user->id()]);
     $user = $storage->load($user->id());
     $user->save();
@@ -174,6 +184,7 @@ class SyncopeUserMapper {
     }
 
     $user->set('syncope_uuid', $syncope_user->getUuid());
+    $user->set('syncope_updated', $syncope_user->getUpdated());
   }
 
   /**
@@ -190,16 +201,36 @@ class SyncopeUserMapper {
     }
 
     try {
-      $this->client->getUser($uuid);
+      $syncope_user = $this->client->getUser($uuid);
     }
     catch (SyncopeUserNotFoundException $e) {
       $this->logger->info('The user cannot be updated in Syncope because it doesn\'t exist there: ' . $user->id());
       return;
     }
 
-    $roles = $this->roleMapper->getRolesForUser($user);
-    $syncope_user = new SyncopeUser($uuid, $user->label(), $roles);
-    $this->client->updateUser($syncope_user);
+    if ($syncope_user->getUpdated() === (int) $user->get('syncope_updated')->value) {
+      // If the update date matches, we are safe to update the user in Syncope.
+      $roles = $this->roleMapper->getRolesForUser($user);
+      $syncope_user = new SyncopeUser($uuid, $user->label(), $roles);
+      $syncope_user = $this->client->updateUser($syncope_user);
+      $user->set('syncope_updated', $syncope_user->getUpdated());
+      return;
+    }
+
+    // Otherwise, we need to set the roles we found in Syncope and set them on
+    // the user.
+    $groups = [];
+    foreach ($syncope_user->getGroups() as $uuid) {
+      $groups[] = $this->client->getGroup($uuid);
+    }
+
+    $roles = ['authenticated'];
+    foreach ($groups as $group) {
+      $roles[] = $group->getDrupalName();
+    }
+
+    $user->set('roles', $roles);
+    $user->set('syncope_updated', $syncope_user->getUpdated());
   }
 
 }

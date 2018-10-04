@@ -65,7 +65,6 @@ function oe_authorisation_syncope_user_storage_load(array $entities) {
       // We do nothing in this case.
     }
   }
-
 }
 
 /**
@@ -81,6 +80,10 @@ function oe_authorisation_syncope_entity_base_field_info(EntityTypeInterface $en
   $fields['syncope_uuid'] = BaseFieldDefinition::create('string')
     ->setLabel(t('Syncope UUID'))
     ->setDescription(t('The UUID of this User in Syncope.'));
+
+  $fields['syncope_updated'] = BaseFieldDefinition::create('timestamp')
+    ->setLabel(t('Syncope Updated'))
+    ->setDescription(t('The last updated timestamp of the user in Syncope.'));
 
   return $fields;
 }
