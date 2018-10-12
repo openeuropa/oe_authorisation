@@ -21,6 +21,8 @@ use OpenEuropa\SyncopePhpClient\Api\AnyObjectsApi;
 use OpenEuropa\SyncopePhpClient\Api\GroupsApi;
 use OpenEuropa\SyncopePhpClient\Api\RealmsApi;
 use OpenEuropa\SyncopePhpClient\Configuration;
+use OpenEuropa\SyncopePhpClient\Model\AnyObjectTO;
+use OpenEuropa\SyncopePhpClient\Model\GroupTO;
 
 /**
  * Service that wraps the Syncope PHP client.
@@ -209,13 +211,13 @@ class SyncopeClient {
 
     $group_name = "$name@$realm";
 
-    $payload = new \stdClass();
-    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.GroupTO';
-    $payload->realm = '/' . $this->siteRealm;
-    $payload->name = $group_name;
-
+    $groupTo = new GroupTO([
+      'realm' => '/' . $this->siteRealm,
+      'name' => $group_name,
+    ]);
+    $groupTo->setClass('org.apache.syncope.common.lib.to.GroupTO');
     try {
-      $response = $api->createGroup($this->syncopeDomain, $payload);
+      $response = $api->createGroup($this->syncopeDomain, $groupTo);
     }
     catch (\Exception $e) {
       $this->logger->error(sprintf('There was a problem creating the group %s: %s.', $group_name, $e->getMessage()));
@@ -327,22 +329,23 @@ class SyncopeClient {
       $realm = '/';
     }
 
-    $payload = new \stdClass();
-    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.AnyObjectTO';
-    $payload->realm = $realm;
-    $payload->memberships = $memberships;
-    $payload->name = $username;
-    $payload->type = 'OeUser';
-    // @todo move this out of here and set the EULogin ID dynamically.
-    $payload->plainAttrs = [
-      [
-        'schema' => 'eulogin_id',
-        'values' => [$user->getName()],
+    $anyObjectTo = new AnyObjectTO([
+      'realm' => $realm,
+      'memberships' => $memberships,
+      'name' => $username,
+      'type' => 'OeUser',
+      // @todo move this out of here and set the EULogin ID dynamically.
+      'plainAttrs' => [
+        [
+          'schema' => 'eulogin_id',
+          'values' => [$user->getName()],
+        ],
       ],
-    ];
+    ]);
+    $anyObjectTo->setClass('org.apache.syncope.common.lib.to.AnyObjectTO');
 
     try {
-      $response = $api->createAnyObject($this->syncopeDomain, $payload);
+      $response = $api->createAnyObject($this->syncopeDomain, $anyObjectTo);
     }
     catch (\Exception $e) {
       $this->logger->error(sprintf('There was a problem creating the user %s: %s.', $user->getName(), $e->getMessage()));
@@ -394,23 +397,25 @@ class SyncopeClient {
     }
 
     $username = $user->getName() . '@' . $this->siteRealm;
-    $payload = new \stdClass();
-    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.AnyObjectTO';
-    $payload->realm = '/' . $this->siteRealm;
-    $payload->memberships = $memberships;
-    $payload->name = $username;
-    $payload->type = 'OeUser';
-    $payload->key = $user->getUuid();
-    // @todo move this out of here and set the EULogin ID dynamically.
-    $payload->plainAttrs = [
-      [
-        'schema' => 'eulogin_id',
-        'values' => [$user->getName()],
+
+    $anyObjectTo = new AnyObjectTO([
+      'realm' => '/' . $this->siteRealm,
+      'memberships' => $memberships,
+      'name' => $username,
+      'type' => 'OeUser',
+      'key' => $user->getUuid(),
+      // @todo move this out of here and set the EULogin ID dynamically.
+      'plainAttrs' => [
+        [
+          'schema' => 'eulogin_id',
+          'values' => [$user->getName()],
+        ],
       ],
-    ];
+    ]);
+    $anyObjectTo->setClass('org.apache.syncope.common.lib.to.AnyObjectTO');
 
     try {
-      $response = $api->updateAnyObject($user->getUuid(), $this->syncopeDomain, $payload);
+      $response = $api->updateAnyObject($user->getUuid(), $this->syncopeDomain, $anyObjectTo);
     }
     catch (\Exception $e) {
       $this->logger->error(sprintf('There was a problem updating the user %s: %s.', $user->getName(), $e->getMessage()));
@@ -630,23 +635,24 @@ class SyncopeClient {
       ];
     }
 
-    $payload = new \stdClass();
-    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.AnyObjectTO';
-    $payload->realm = '/';
-    $payload->memberships = $memberships;
-    $payload->name = $root_user->getName();
-    $payload->type = 'OeUser';
-    $payload->key = $root_user->getUuid();
-    // @todo move this out of here and set the EULogin ID dynamically.
-    $payload->plainAttrs = [
-      [
-        'schema' => 'eulogin_id',
-        'values' => [$root_user->getName()],
+    $anyObjectTo = new AnyObjectTO([
+      'realm' => '/',
+      'memberships' => $memberships,
+      'name' => $root_user->getName(),
+      'type' => 'OeUser',
+      'key' => $root_user->getUuid(),
+      // @todo move this out of here and set the EULogin ID dynamically.
+      'plainAttrs' => [
+        [
+          'schema' => 'eulogin_id',
+          'values' => [$root_user->getName()],
+        ],
       ],
-    ];
+    ]);
+    $anyObjectTo->setClass('org.apache.syncope.common.lib.to.AnyObjectTO');
 
     try {
-      $response = $api->updateAnyObject($root_user->getUuid(), $this->syncopeDomain, $payload);
+      $response = $api->updateAnyObject($root_user->getUuid(), $this->syncopeDomain, $anyObjectTo);
     }
     catch (\Exception $e) {
       $this->logger->error(sprintf('There was a problem updating the user %s: %s.', $user->getName(), $e->getMessage()));
