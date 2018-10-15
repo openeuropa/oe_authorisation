@@ -183,8 +183,7 @@ class SyncopeContext extends RawDrupalContext {
       $syncope_users = $this->getSyncopeClient()->getAllUsers($user->label());
       $root_user = NULL;
       foreach ($syncope_users as $syncope_user) {
-        // @todo refactor this to determine root user inside the SyncopeUser.
-        if (strpos($syncope_user->getName(), '@') === FALSE) {
+        if ($syncope_user->isRootUser()) {
           $root_user = $syncope_user;
           break;
         }
