@@ -11,7 +11,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\oe_authorisation_syncope\Exception\SyncopeLoginException;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeUserException;
 use Drupal\user\RoleInterface;
 use Drupal\user\UserInterface;
@@ -58,12 +57,7 @@ function oe_authorisation_syncope_user_login($account) {
  */
 function oe_authorisation_syncope_user_storage_load(array $entities) {
   foreach ($entities as $entity) {
-    try {
-      \Drupal::service('oe_authorisation_syncope.user_mapper')->load($entity);
-    }
-    catch (SyncopeLoginException $exception) {
-      // We do nothing in this case.
-    }
+    \Drupal::service('oe_authorisation_syncope.user_mapper')->load($entity);
   }
 }
 
