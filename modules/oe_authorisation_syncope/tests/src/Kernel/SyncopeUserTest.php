@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\Tests\oe_authorisation_syncope\Kernel;
 
+use Drupal\oe_authorisation_syncope\Exception\SyncopeUserNotFoundException;
 use Drupal\oe_authorisation_syncope\Syncope\SyncopeUser;
 use Drupal\user\UserInterface;
 
@@ -45,7 +46,13 @@ class SyncopeUserTest extends SyncopeTestBase {
 
     // Delete the user.
     $user->delete();
-    // @todo assert the user got deleted.
+    // Assert the user has been deleted.
+    try {
+      $syncope_user = $this->getClient()->getUser($uuid);
+    }
+    catch (SyncopeUserNotFoundException $exception) {
+      $this->assertEquals("The user was not found.", $exception->getMessage());
+    }
   }
 
   /**
