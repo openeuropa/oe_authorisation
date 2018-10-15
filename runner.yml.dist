@@ -30,7 +30,7 @@ drupal:
     config:
       oe_authorisation_syncope.settings:
         credentials:
-          username: 'admin'
+          username: 'system-account-sitea'
           password: 'password'
         endpoint: 'http://syncope:8080/syncope/rest'
         domain: 'Master'
