@@ -38,11 +38,11 @@ class SyncopeTestBase extends KernelTestBase {
    */
   protected function setUp(): void {
     $GLOBALS['config']['oe_authorisation_syncope.settings']['credentials'] = [
-      'username' => 'admin',
-      'password' => 'password',
+      'username' => $_ENV['SYNCOPE_USER'],
+      'password' => $_ENV['SYNCOPE_PASSWORD'],
     ];
-    $GLOBALS['config']['oe_authorisation_syncope.settings']['endpoint'] = 'http://syncope:8080/syncope/rest';
-    $GLOBALS['config']['oe_authorisation_syncope.settings']['site_realm_name'] = 'sitea';
+    $GLOBALS['config']['oe_authorisation_syncope.settings']['endpoint'] = $_ENV['SYNCOPE_ENDPOINT'];
+    $GLOBALS['config']['oe_authorisation_syncope.settings']['site_realm_name'] = $_ENV['SYNCOPE_REALM_NAME'];
 
     parent::setUp();
 

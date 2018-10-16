@@ -41,6 +41,7 @@ authorisation:
     username: "admin"
     password: "password"
     endpoint: "http://syncope:8080/syncope/rest"
+    site_realm_name: 'sitea'
 
 commands:
   drupal:site-setup:
