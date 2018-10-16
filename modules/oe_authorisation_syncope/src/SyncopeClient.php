@@ -32,19 +32,14 @@ use OpenEuropa\SyncopePhpClient\Model\GroupTO;
 class SyncopeClient {
 
   /**
-   * The identifier to use for retrieving a user by UUID.
+   * The identifier to use for retrieving Syncope objects by UUID.
    */
-  const USER_IDENTIFIER_UUID = 'uuid';
+  const IDENTIFIER_UUID = 'uuid';
 
   /**
    * The identifier to use for retrieving a user by username.
    */
   const USER_IDENTIFIER_USERNAME = 'username';
-
-  /**
-   * The identifier to use for retrieving a group by UUID.
-   */
-  const GROUP_IDENTIFIER_UUID = 'uuid';
 
   /**
    * The identifier to use for retrieving a group by name.
@@ -248,7 +243,7 @@ class SyncopeClient {
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeGroupException
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeGroupNotFoundException
    */
-  public function getGroup(string $identifier, $identifier_type = self::GROUP_IDENTIFIER_UUID): SyncopeGroup {
+  public function getGroup(string $identifier, $identifier_type = self::IDENTIFIER_UUID): SyncopeGroup {
     $api = new GroupsApi($this->client, $this->configuration);
     if ($identifier_type === self::GROUP_IDENTIFIER_NAME) {
       $identifier .= '@' . $this->siteRealm;
@@ -454,7 +449,7 @@ class SyncopeClient {
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeUserException
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeUserNotFoundException
    */
-  public function getUser(string $identifier, $identifier_type = self::USER_IDENTIFIER_UUID): SyncopeUser {
+  public function getUser(string $identifier, $identifier_type = self::IDENTIFIER_UUID): SyncopeUser {
     $api = new AnyObjectsApi($this->client, $this->configuration);
     if ($identifier_type === self::USER_IDENTIFIER_USERNAME) {
       $identifier .= '@' . $this->siteRealm;
