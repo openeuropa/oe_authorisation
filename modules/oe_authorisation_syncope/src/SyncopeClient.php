@@ -619,7 +619,6 @@ class SyncopeClient {
       throw new SyncopeUserException('The root user is missing. We cannot add a global role.');
     }
 
-    // @todo check if the role is set already.
     $api = new AnyObjectsApi($this->client, $this->configuration);
 
     $memberships = [];
