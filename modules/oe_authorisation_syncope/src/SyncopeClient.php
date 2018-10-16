@@ -361,7 +361,10 @@ class SyncopeClient {
       $groups[] = $membership->groupKey;
     }
 
-    return new SyncopeUser($object->key, $object->name, $groups);
+    $syncope_user = new SyncopeUser($object->key, $object->name, $groups);
+    $date = new \DateTime($object->lastChangeDate);
+    $syncope_user->setUpdated($date->getTimestamp());
+    return $syncope_user;
   }
 
   /**
@@ -426,7 +429,10 @@ class SyncopeClient {
       $groups[] = $membership->groupKey;
     }
 
-    return new SyncopeUser($object->key, $object->name, $groups);
+    $syncope_user = new SyncopeUser($object->key, $object->name, $groups);
+    $date = new \DateTime($object->lastChangeDate);
+    $syncope_user->setUpdated($date->getTimestamp());
+    return $syncope_user;
   }
 
   /**
@@ -473,7 +479,10 @@ class SyncopeClient {
       $groups[] = $membership->groupKey;
     }
 
-    return new SyncopeUser($response->key, $response->name, $groups);
+    $syncope_user = new SyncopeUser($response->key, $response->name, $groups);
+    $date = new \DateTime($response->lastChangeDate);
+    $syncope_user->setUpdated($date->getTimestamp());
+    return $syncope_user;
   }
 
   /**
@@ -530,7 +539,10 @@ class SyncopeClient {
         $groups[] = $membership->groupKey;
       }
 
-      $users[] = new SyncopeUser($object->key, $object->name, $groups);
+      $syncope_user = new SyncopeUser($object->key, $object->name, $groups);
+      $date = new \DateTime($object->lastChangeDate);
+      $syncope_user->setUpdated($date->getTimestamp());
+      $users[] = $syncope_user;
     }
 
     return $users;

@@ -11,7 +11,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\oe_authorisation_syncope\Exception\SyncopeLoginException;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeUserException;
 use Drupal\user\RoleInterface;
 use Drupal\user\UserInterface;
@@ -50,12 +49,15 @@ function oe_authorisation_syncope_entity_predelete(EntityInterface $entity) {
  * Implements hook_user_login().
  */
 function oe_authorisation_syncope_user_login($account) {
-  try {
-    \Drupal::service('oe_authorisation_syncope.user_mapper')->login($account);
-  }
-  catch (SyncopeLoginException $exception) {
-    user_logout();
-    \Drupal::messenger()->addError(t('There was a problem logging you into the site.'));
+  \Drupal::service('oe_authorisation_syncope.user_mapper')->login($account);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_storage_load() for the User entity type.
+ */
+function oe_authorisation_syncope_user_storage_load(array $entities) {
+  foreach ($entities as $entity) {
+    \Drupal::service('oe_authorisation_syncope.user_mapper')->load($entity);
   }
 }
 
@@ -72,6 +74,10 @@ function oe_authorisation_syncope_entity_base_field_info(EntityTypeInterface $en
   $fields['syncope_uuid'] = BaseFieldDefinition::create('string')
     ->setLabel(t('Syncope UUID'))
     ->setDescription(t('The UUID of this User in Syncope.'));
+
+  $fields['syncope_updated'] = BaseFieldDefinition::create('timestamp')
+    ->setLabel(t('Syncope Updated'))
+    ->setDescription(t('The last updated timestamp of the user in Syncope.'));
 
   return $fields;
 }

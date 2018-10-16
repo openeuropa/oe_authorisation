@@ -24,6 +24,13 @@ class SyncopeUser {
   protected $name;
 
   /**
+   * Timestamp when the Syncope user was last updated.
+   *
+   * @var int
+   */
+  protected $updated;
+
+  /**
    * The user groups (UUIDs)
    *
    * @var array
@@ -64,6 +71,26 @@ class SyncopeUser {
    */
   public function getName(): string {
     return $this->name;
+  }
+
+  /**
+   * Returns the updated timestamp.
+   *
+   * @return int
+   *   The timestamp.
+   */
+  public function getUpdated(): int {
+    return $this->updated;
+  }
+
+  /**
+   * Sets the updated timestamp.
+   *
+   * @param int $updated
+   *   The timestamp.
+   */
+  public function setUpdated(int $updated): void {
+    $this->updated = $updated;
   }
 
   /**

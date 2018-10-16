@@ -9,6 +9,8 @@ use Drupal\oe_authorisation_syncope\SyncopeClient;
 
 /**
  * Base class the Syncope integration tests.
+ *
+ * @todo Mock the Syncope client.
  */
 class SyncopeTestBase extends KernelTestBase {
 

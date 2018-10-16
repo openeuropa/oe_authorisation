@@ -7,11 +7,11 @@ Feature: Syncope integration
   Scenario Outline: Users should get their roles from Syncope on login
     Given users:
       | name | mail             |
-      | jack | jack@example.com |
-    And the user "jack" gets the role "<role>" in Syncope
-    And the user "jack" does not have the role "<role>" in Drupal
-    And I am logged in as "jack"
-    Then the user "jack" should have the role "<role>" in Drupal
+      | Kevin | Kevin@example.com |
+    And the user "Kevin" does not have the role "<role>" in Drupal
+    And the user "Kevin" gets the role "<role>" in Syncope
+    And I am logged in as "Kevin"
+    Then the user "Kevin" should have the role "<role>" in Drupal
 
     Examples:
       | role             |
@@ -20,15 +20,15 @@ Feature: Syncope integration
       # Global role.
       | Support Engineer |
 
-  Scenario Outline: Users should loses their roles in Drupal on login if they no longer have them assigned in Syncope
+  Scenario Outline: Users should lose their roles in Drupal on login if they no longer have them assigned in Syncope
     Given users:
       | name | mail             |
-      | jack | jack@example.com |
-    And the user "jack" has the roles "Site Manager, Support Engineer" in Drupal
-    And the user "jack" loses the role "<lost>" in Syncope
-    And I am logged in as "jack"
-    Then the user "jack" should not have the role "<lost>" in Drupal
-    And the user "jack" should have the role "<kept>" in Drupal
+      | Kevin | Kevin@example.com |
+    And the user "Kevin" has the roles "Site Manager, Support Engineer" in Drupal
+    And the user "Kevin" loses the role "<lost>" in Syncope
+    And I am logged in as "Kevin"
+    Then the user "Kevin" should not have the role "<lost>" in Drupal
+    And the user "Kevin" should have the role "<kept>" in Drupal
 
     Examples:
       | lost             | kept             |
@@ -40,20 +40,20 @@ Feature: Syncope integration
   Scenario: Users created in Drupal should be mapped in Syncope with the correct roles
     Given users:
       | name | mail             | roles                |
-      | jack | jack@example.com | Editor, Site Manager |
-    Then the user "jack" should have the roles "Editor, Site Manager" in Syncope
+      | Kevin | Kevin@example.com | Editor, Site Manager |
+    Then the user "Kevin" should have the roles "Editor, Site Manager" in Syncope
 
   Scenario: Users updated in Drupal should be mapped in Syncope with the correct roles
     Given users:
       | name | mail             | roles                |
-      | jack | jack@example.com | Editor, Site Manager |
+      | Kevin | Kevin@example.com | Editor, Site Manager |
     And I am logged in as a user with the "administer users, administer permissions" permissions
     And I go to "/admin/people"
-    And I click "Edit" in the "jack" row
+    And I click "Edit" in the "Kevin" row
     And I uncheck the box "Site Manager"
     And I press "Save"
-    Then the user "jack" should have the roles "Editor" in Syncope
-    And the user "jack" should not have the roles "Site Manager" in Syncope
+    Then the user "Kevin" should have the roles "Editor" in Syncope
+    And the user "Kevin" should not have the roles "Site Manager" in Syncope
 
   Scenario: Global roles should not be assignable in Drupal
     Given I am logged in as a user with the "administer users, administer permissions" permissions
