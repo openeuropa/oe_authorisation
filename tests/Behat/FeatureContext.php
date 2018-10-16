@@ -101,4 +101,19 @@ class FeatureContext extends DrupalContext {
     }
   }
 
+  /**
+   * Asserts that the given role checkbox is disabled.
+   *
+   * @Given I am at the :user user page
+   * @When I visit the :user user page
+   */
+  public function iVisitUsersPage(string $name): void {
+    $user_storage = \Drupal::entityTypeManager()->getStorage('user');
+    $user_storage->resetCache();
+    $users = $user_storage->loadByProperties(['name' => $name]);
+    /** @var \Drupal\user\UserInterface $user */
+    $user = reset($users);
+    $this->getSession()->visit($this->locatePath($user->toUrl()->getInternalPath()));
+  }
+
 }

@@ -60,3 +60,13 @@ Feature: Syncope integration
     And I go to "/user"
     And I click "Edit"
     Then the "Support Engineer" role checkbox should be disabled
+
+  Scenario: Users should get their roles from Syncope on load
+    Given I am logged in as a user with the 'Site Manager' role
+    And users:
+      | name | mail             |
+      | Kevin | Kevin@example.com |
+    And the user "Kevin" does not have the role "Site Manager" in Drupal
+    And the user "Kevin" gets the role "Site Manager" in Syncope
+    And I visit the "Kevin" user page
+    Then the user "Kevin" should have the role "Site Manager" in Drupal
