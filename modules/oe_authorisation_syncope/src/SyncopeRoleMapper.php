@@ -219,7 +219,7 @@ class SyncopeRoleMapper {
       }
       // If the ID is NULL, we try by name. Normally this should not be needed
       // but just in case the role already exists on the Syncope instance.
-      $group = $this->client->getGroup($role->id(), SyncopeClient::GROUP_IDENTIFIER_NAME);
+      $group = $this->client->getGroup($role->id(), SyncopeClient::IDENTIFIER_NAME);
       // Just in case the group is already there but no UUID has been set.
       $this->setRoleUuid($role, $group->getUuid());
     }

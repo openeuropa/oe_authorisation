@@ -46,12 +46,13 @@ class SyncopeUserTest extends SyncopeTestBase {
 
     // Delete the user.
     $user->delete();
-    // Assert the user has been deleted.
+
+    // Assert the user has been deleted in Syncope.
     try {
-      $syncope_user = $this->getClient()->getUser($uuid);
+      $this->getClient()->getUser($uuid);
     }
     catch (SyncopeUserNotFoundException $exception) {
-      $this->assertEquals("The user was not found.", $exception->getMessage());
+      $this->assertInstanceOf(SyncopeUserNotFoundException::class, $exception);
     }
   }
 

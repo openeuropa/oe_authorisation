@@ -89,7 +89,7 @@ class FeatureContext extends DrupalContext {
    *
    * @Then the :name role checkbox should be disabled
    */
-  public function theRoleCheckboxShouldBeDisabled(string $name): void {
+  public function assertRoleCheckboxDisabled(string $name): void {
     $session = $this->getSession();
     $element = $session->getPage()->findField($name);
     if (!$element instanceof NodeElement) {
@@ -99,21 +99,6 @@ class FeatureContext extends DrupalContext {
     if ($element->getAttribute('disabled') !== 'disabled') {
       throw new \Exception(sprintf('%s role checkbox is not disabled.', $name));
     }
-  }
-
-  /**
-   * Asserts that the given role checkbox is disabled.
-   *
-   * @Given I am at the :user user page
-   * @When I visit the :user user page
-   */
-  public function iVisitUsersPage(string $name): void {
-    $user_storage = \Drupal::entityTypeManager()->getStorage('user');
-    $user_storage->resetCache();
-    $users = $user_storage->loadByProperties(['name' => $name]);
-    /** @var \Drupal\user\UserInterface $user */
-    $user = reset($users);
-    $this->getSession()->visit($this->locatePath($user->toUrl()->getInternalPath()));
   }
 
 }

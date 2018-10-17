@@ -6,7 +6,7 @@ Feature: Syncope integration
 
   Scenario Outline: Users should get their roles from Syncope on login
     Given users:
-      | name | mail             |
+      | name  | mail              |
       | Kevin | Kevin@example.com |
     And the user "Kevin" does not have the role "<role>" in Drupal
     And the user "Kevin" gets the role "<role>" in Syncope
@@ -22,7 +22,7 @@ Feature: Syncope integration
 
   Scenario Outline: Users should lose their roles in Drupal on login if they no longer have them assigned in Syncope
     Given users:
-      | name | mail             |
+      | name  | mail              |
       | Kevin | Kevin@example.com |
     And the user "Kevin" has the roles "Site Manager, Support Engineer" in Drupal
     And the user "Kevin" loses the role "<lost>" in Syncope
@@ -39,13 +39,13 @@ Feature: Syncope integration
 
   Scenario: Users created in Drupal should be mapped in Syncope with the correct roles
     Given users:
-      | name | mail             | roles                |
+      | name  | mail              | roles                |
       | Kevin | Kevin@example.com | Editor, Site Manager |
     Then the user "Kevin" should have the roles "Editor, Site Manager" in Syncope
 
   Scenario: Users updated in Drupal should be mapped in Syncope with the correct roles
     Given users:
-      | name | mail             | roles                |
+      | name  | mail              | roles                |
       | Kevin | Kevin@example.com | Editor, Site Manager |
     And I am logged in as a user with the "administer users, administer permissions" permissions
     And I go to "/admin/people"
@@ -61,12 +61,12 @@ Feature: Syncope integration
     And I click "Edit"
     Then the "Support Engineer" role checkbox should be disabled
 
-  Scenario: Users should get their roles from Syncope on load
-    Given I am logged in as a user with the 'Site Manager' role
+  Scenario: The user edit form should reflect the roles found in Syncope for that user
+    Given I am logged in as a user with the "administer users, administer permissions" permissions
     And users:
-      | name | mail             |
+      | name  | mail              |
       | Kevin | Kevin@example.com |
-    And the user "Kevin" does not have the role "Site Manager" in Drupal
     And the user "Kevin" gets the role "Site Manager" in Syncope
-    And I visit the "Kevin" user page
-    Then the user "Kevin" should have the role "Site Manager" in Drupal
+    And I go to "/admin/people"
+    And I click "Edit" in the "Kevin" row
+    Then the "Site Manager" checkbox should be checked

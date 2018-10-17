@@ -37,15 +37,9 @@ class SyncopeClient {
   const IDENTIFIER_UUID = 'uuid';
 
   /**
-   * The identifier to use for retrieving a user by username.
+   * The identifier to use for retrieving Syncope objects by name.
    */
-  const USER_IDENTIFIER_USERNAME = 'username';
-
-  /**
-   * The identifier to use for retrieving a group by name.
-   */
-  const GROUP_IDENTIFIER_NAME = 'name';
-
+  const IDENTIFIER_NAME = 'name';
 
   /**
    * The configuration data.
@@ -205,12 +199,13 @@ class SyncopeClient {
     $realm = $this->siteRealm;
 
     $group_name = "$name@$realm";
-
     $groupTo = new GroupTO([
       'realm' => '/' . $this->siteRealm,
       'name' => $group_name,
     ]);
+
     $groupTo->setClass('org.apache.syncope.common.lib.to.GroupTO');
+
     try {
       $response = $api->createGroup($this->syncopeDomain, $groupTo);
     }
@@ -245,7 +240,7 @@ class SyncopeClient {
    */
   public function getGroup(string $identifier, $identifier_type = self::IDENTIFIER_UUID): SyncopeGroup {
     $api = new GroupsApi($this->client, $this->configuration);
-    if ($identifier_type === self::GROUP_IDENTIFIER_NAME) {
+    if ($identifier_type === self::IDENTIFIER_NAME) {
       $identifier .= '@' . $this->siteRealm;
     }
 
@@ -339,6 +334,7 @@ class SyncopeClient {
       throw new SyncopeUserException('There was a problem creating the user.');
     }
     $object = $response->entity;
+
     return $this->processSyncopeUserResponse($object);
   }
 
@@ -369,7 +365,6 @@ class SyncopeClient {
     }
 
     $username = $user->getName() . '@' . $this->siteRealm;
-
     $anyObjectTo = $this->generateAnyObjectTo('/' . $this->siteRealm, $memberships, $username, $user->getName(), $user->getUuid());
 
     try {
@@ -385,6 +380,7 @@ class SyncopeClient {
       throw new SyncopeUserException('There was a problem updating the user.');
     }
     $object = $response->entity;
+
     return $this->processSyncopeUserResponse($object);
   }
 
@@ -404,7 +400,7 @@ class SyncopeClient {
    */
   public function getUser(string $identifier, $identifier_type = self::IDENTIFIER_UUID): SyncopeUser {
     $api = new AnyObjectsApi($this->client, $this->configuration);
-    if ($identifier_type === self::USER_IDENTIFIER_USERNAME) {
+    if ($identifier_type === self::IDENTIFIER_NAME) {
       $identifier .= '@' . $this->siteRealm;
     }
 
@@ -597,7 +593,7 @@ class SyncopeClient {
    * @return \OpenEuropa\SyncopePhpClient\Model\AnyObjectTO
    *   An AnyObjectTO object ready to be saved into Syncope.
    */
-  private function generateAnyObjectTo($realm, array $memberships, $name, $eulogin, $key = '') {
+  protected function generateAnyObjectTo(string $realm, array $memberships, string $name, string $eulogin, string $key = ''): AnyObjectTO {
     $anyObjectTo = new AnyObjectTO([
       'realm' => $realm,
       'memberships' => $memberships,
@@ -611,15 +607,17 @@ class SyncopeClient {
         ],
       ],
     ]);
+
     if (!empty($key)) {
       $anyObjectTo->setKey($key);
     }
     $anyObjectTo->setClass('org.apache.syncope.common.lib.to.AnyObjectTO');
+
     return $anyObjectTo;
   }
 
   /**
-   * Processes a user CRUD response from Syncope into an updated SyncopeUser.
+   * Processes a user CRUD response from Syncope into a SyncopeUser object.
    *
    * @param \OpenEuropa\SyncopePhpClient\Model\AnyObjectTO|\stdClass $object
    *   The response object.
@@ -627,7 +625,7 @@ class SyncopeClient {
    * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser
    *   An updated SyncopeUser object.
    */
-  private function processSyncopeUserResponse($object) {
+  protected function processSyncopeUserResponse(\stdClass $object): SyncopeUser {
     $memberships = $object->memberships;
     $groups = [];
     foreach ($memberships as $membership) {
@@ -637,6 +635,7 @@ class SyncopeClient {
     $syncope_user = new SyncopeUser($object->key, $object->name, $groups);
     $date = new \DateTime($object->lastChangeDate);
     $syncope_user->setUpdated($date->getTimestamp());
+
     return $syncope_user;
   }
 

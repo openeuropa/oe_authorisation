@@ -32,7 +32,7 @@ class SyncopeRoleTest extends SyncopeTestBase {
     $this->assertInstanceOf(SyncopeGroup::class, $group);
 
     // Check in Syncope we have the role by machine name.
-    $group = $this->getClient()->getGroup($role->id(), SyncopeClient::GROUP_IDENTIFIER_NAME);
+    $group = $this->getClient()->getGroup($role->id(), SyncopeClient::IDENTIFIER_NAME);
     $this->assertInstanceOf(SyncopeGroup::class, $group);
 
     // Delete the role and make sure it's gone in Syncope.
@@ -58,7 +58,7 @@ class SyncopeRoleTest extends SyncopeTestBase {
 
     // Assert no role got created.
     try {
-      $this->getClient()->getGroup($role->id(), SyncopeClient::GROUP_IDENTIFIER_NAME);
+      $this->getClient()->getGroup($role->id(), SyncopeClient::IDENTIFIER_NAME);
       $this->fail('The group was found and should not be');
     }
     catch (\Exception $exception) {
