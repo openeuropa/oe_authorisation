@@ -30,14 +30,21 @@ services:
 
 pipeline:
   composer-install:
-    group: prepare
+    group: composer
     image: fpfis/httpd-php-dev:7.1
     volumes:
     - /cache:/cache
     commands:
     - composer install --ansi --no-suggest --no-progress
 
+  pre-syncope-provisioning:
+    group: pre-setup
+    image: apache/syncope:2.1.1
+    commands:
+    - /sbin/startup.sh
+
   syncope-provisioning:
+    group: setup
     image: fpfis/httpd-php-dev:7.1
     commands:
     - ./vendor/bin/run oe-authorisation-service:setup
