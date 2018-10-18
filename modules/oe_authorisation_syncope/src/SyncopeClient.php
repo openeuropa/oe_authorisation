@@ -256,6 +256,7 @@ class SyncopeClient {
     }
 
     $drupal_name = str_replace('@' . $this->siteRealm, '', $response->name);
+
     return new SyncopeGroup($response->key, $response->name, $drupal_name);
   }
 

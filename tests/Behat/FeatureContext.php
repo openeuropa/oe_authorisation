@@ -58,6 +58,8 @@ class FeatureContext extends DrupalContext {
    *   The role.
    * @param bool $has
    *   Whether to check if the user has or does not have those roles.
+   *
+   * @throws \Exception
    */
   protected function assertUserRole(string $name, string $role, bool $has): void {
     $user_storage = \Drupal::entityTypeManager()->getStorage('user');
@@ -88,6 +90,8 @@ class FeatureContext extends DrupalContext {
    * Asserts that the given role checkbox is disabled.
    *
    * @Then the :name role checkbox should be disabled
+   *
+   * @throws \Exception
    */
   public function assertRoleCheckboxDisabled(string $name): void {
     $session = $this->getSession();

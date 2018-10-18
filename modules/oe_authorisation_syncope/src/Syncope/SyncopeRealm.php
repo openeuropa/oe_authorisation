@@ -53,7 +53,6 @@ class SyncopeRealm {
     $this->uuid = $uuid;
     $this->name = $name;
     $this->path = $path;
-    $this->path = $path;
     $this->parent = $parent;
   }
 

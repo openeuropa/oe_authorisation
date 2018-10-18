@@ -37,6 +37,8 @@ class SyncopeRoleTest extends SyncopeTestBase {
 
     // Delete the role and make sure it's gone in Syncope.
     $role->delete();
+
+    // Check if the group was deleted correctly.
     try {
       $this->getClient()->getGroup($uuid);
       $this->fail('The group was found and should not be');
