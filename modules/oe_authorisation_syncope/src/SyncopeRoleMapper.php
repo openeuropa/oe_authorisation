@@ -81,7 +81,7 @@ class SyncopeRoleMapper {
     }
 
     // We also don't want to ever map the default roles.
-    if (in_array($role->id(), ['anonymous', 'authenticated'])) {
+    if (\in_array($role->id(), ['anonymous', 'authenticated'])) {
       return;
     }
 
@@ -148,6 +148,8 @@ class SyncopeRoleMapper {
    *
    * @return array
    *   The Drupal roles of this user mapped from Syncope.
+   *
+   * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeUserException
    */
   public function getUserDrupalRolesFromSyncope(UserInterface $user): array {
     $uuid = $user->get('syncope_uuid')->value;
@@ -217,9 +219,10 @@ class SyncopeRoleMapper {
         $this->setRoleUuid($role, $group->getUuid());
         return;
       }
+
       // If the ID is NULL, we try by name. Normally this should not be needed
       // but just in case the role already exists on the Syncope instance.
-      $group = $this->client->getGroup($role->id(), SyncopeClient::GROUP_IDENTIFIER_NAME);
+      $group = $this->client->getGroup($role->id(), SyncopeClient::IDENTIFIER_NAME);
       // Just in case the group is already there but no UUID has been set.
       $this->setRoleUuid($role, $group->getUuid());
     }
@@ -238,7 +241,7 @@ class SyncopeRoleMapper {
    * @param \Drupal\user\RoleInterface $role
    *   The Drupal role.
    */
-  protected function mapExistingRole(RoleInterface $role) {
+  protected function mapExistingRole(RoleInterface $role): void {
     // We can just defer to mapNewRole() as it does the check for existing role.
     $this->mapNewRole($role);
   }

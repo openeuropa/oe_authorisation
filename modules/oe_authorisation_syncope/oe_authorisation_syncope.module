@@ -99,6 +99,9 @@ function oe_authorisation_syncope_form_user_form_alter(&$form, FormStateInterfac
     return;
   }
 
+  // Instead of simply resetting the cache and reloading the user, we make a
+  // new call to Syncope so that we know if something goes wrong with the
+  // request. If it does, we don't allow changes to this form.
   /** @var \Drupal\oe_authorisation_syncope\SyncopeRoleMapper $role_mapper */
   $role_mapper = \Drupal::service('oe_authorisation_syncope.role_mapper');
 

@@ -92,11 +92,21 @@ class SyncopeUserMapper {
   public function preDelete(UserInterface $user): void {
     $uuid = $user->get('syncope_uuid')->value;
     if (!$uuid) {
-      // We do nothing here, not even log.
+      // We do nothing here, not even log because users without a UUID should
+      // not have to be deleted.
       return;
     }
 
-    // @todo, see if there is a user to delete.
+    try {
+      $this->client->getUser($uuid);
+    }
+    catch (SyncopeUserNotFoundException $exception) {
+      // If the user is not found, we do nothing. It means the user was deleted
+      // in Syncope so we can allow the deletion here.
+      return;
+    }
+
+    // If any other exceptions are thrown, we block the user delete in Drupal.
     $this->client->deleteUser($uuid);
   }
 
@@ -175,7 +185,7 @@ class SyncopeUserMapper {
     }
 
     try {
-      $syncope_user = $this->client->getUser($user->label(), SyncopeClient::USER_IDENTIFIER_USERNAME);
+      $syncope_user = $this->client->getUser($user->label(), SyncopeClient::IDENTIFIER_NAME);
     }
     catch (SyncopeUserNotFoundException $e) {
       $roles = $this->roleMapper->getRolesForUser($user);

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\Tests\oe_authorisation_syncope\Kernel;
 
+use Drupal\oe_authorisation_syncope\Exception\SyncopeUserNotFoundException;
 use Drupal\oe_authorisation_syncope\Syncope\SyncopeUser;
 use Drupal\user\UserInterface;
 
@@ -23,6 +24,7 @@ class SyncopeUserTest extends SyncopeTestBase {
     // Assert we have the user in Syncope.
     $uuid = $user->get('syncope_uuid')->value;
     $this->assertNotEmpty($uuid);
+
     $syncope_user = $this->getClient()->getUser($uuid);
     $this->assertInstanceOf(SyncopeUser::class, $syncope_user);
     $this->assertEquals('Kevin@sitea', $syncope_user->getName());
@@ -37,15 +39,24 @@ class SyncopeUserTest extends SyncopeTestBase {
     $syncope_user = $this->getClient()->getUser($uuid);
     $this->assertInstanceOf(SyncopeUser::class, $syncope_user);
     $this->assertEquals('Mark@sitea', $syncope_user->getName());
+
     $groups = $syncope_user->getGroups();
     $this->assertCount(1, $groups);
+
     $group_uuid = reset($groups);
     $group = $this->getClient()->getGroup($group_uuid);
     $this->assertEquals('site_manager', $group->getDrupalName());
 
     // Delete the user.
     $user->delete();
-    // @todo assert the user got deleted.
+
+    // Assert the user has been deleted in Syncope.
+    try {
+      $this->getClient()->getUser($uuid);
+    }
+    catch (SyncopeUserNotFoundException $exception) {
+      $this->assertInstanceOf(SyncopeUserNotFoundException::class, $exception);
+    }
   }
 
   /**
@@ -121,6 +132,7 @@ class SyncopeUserTest extends SyncopeTestBase {
       ->create(['name' => $name]);
 
     $user->save();
+
     return $user;
   }
 

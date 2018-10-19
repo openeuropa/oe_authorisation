@@ -183,8 +183,7 @@ class SyncopeContext extends RawDrupalContext {
       $syncope_users = $this->getSyncopeClient()->getAllUsers($user->label());
       $root_user = NULL;
       foreach ($syncope_users as $syncope_user) {
-        // @todo refactor this to determine root user inside the SyncopeUser.
-        if (strpos($syncope_user->getName(), '@') === FALSE) {
+        if ($syncope_user->isRootUser()) {
           $root_user = $syncope_user;
           break;
         }
@@ -266,6 +265,8 @@ class SyncopeContext extends RawDrupalContext {
   /**
    * Asserts that a role exists in Syncope.
    *
+   * @throws \Exception
+   *
    * @Then the role :role should exist in Syncope
    */
   public function assertRoleExistsInSyncope(string $role): void {
@@ -287,6 +288,8 @@ class SyncopeContext extends RawDrupalContext {
    *   The user roles.
    * @param bool $has
    *   Whether to check if the user has or does not have those roles.
+   *
+   * @throws \Exception
    */
   protected function assertUserRolesInSyncope(string $name, string $roles, bool $has): void {
     $user = $this->loadUserByName($name);
@@ -322,6 +325,8 @@ class SyncopeContext extends RawDrupalContext {
    * @param \Behat\Behat\Hook\Scope\AfterScenarioScope $afterScenarioScope
    *   The scope.
    *
+   * @throws \Exception
+   *
    * @AfterScenario
    */
   public function cleanUpSyncopeUsers(AfterScenarioScope $afterScenarioScope): void {
@@ -338,6 +343,8 @@ class SyncopeContext extends RawDrupalContext {
    *
    * @return \Drupal\user\UserInterface
    *   The entity.
+   *
+   * @throws \Exception
    */
   protected function loadUserByName(string $name): UserInterface {
     $users = $this->getEntityTypeManager()->getStorage('user')->loadByProperties(['name' => $name]);
@@ -357,6 +364,8 @@ class SyncopeContext extends RawDrupalContext {
    *
    * @return \Drupal\user\RoleInterface
    *   The entity.
+   *
+   * @throws \Exception
    */
   protected function loadRoleByName(string $role): RoleInterface {
     $roles = $this->getEntityTypeManager()->getStorage('user_role')->loadByProperties(['label' => [$role]]);
@@ -377,6 +386,8 @@ class SyncopeContext extends RawDrupalContext {
    *
    * @return \Drupal\user\RoleInterface[]
    *   The entities.
+   *
+   * @throws \Exception
    */
   protected function loadRolesByCommaSeparatedNames(string $roles): array {
     $roles = explode(', ', $roles);

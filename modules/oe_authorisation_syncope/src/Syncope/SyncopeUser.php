@@ -110,11 +110,7 @@ class SyncopeUser {
    *   Whether the user is root level.
    */
   public function isRootUser(): bool {
-    if (strpos($this->getName(), '@') === FALSE) {
-      return TRUE;
-    }
-
-    return FALSE;
+    return (strpos($this->getName(), '@') === FALSE);
   }
 
 }

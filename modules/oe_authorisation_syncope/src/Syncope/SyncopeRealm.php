@@ -31,13 +31,6 @@ class SyncopeRealm {
   protected $path;
 
   /**
-   * Whether it's the root realm.
-   *
-   * @var bool
-   */
-  protected $isRoot;
-
-  /**
    * The UUID of the parent realm.
    *
    * @var string
@@ -60,9 +53,7 @@ class SyncopeRealm {
     $this->uuid = $uuid;
     $this->name = $name;
     $this->path = $path;
-    $this->path = $path;
     $this->parent = $parent;
-    $this->isRoot = $parent == '/';
   }
 
   /**
@@ -112,7 +103,7 @@ class SyncopeRealm {
    *   TRUE if the realm has no parents or FALSE otherwise.
    */
   public function isRoot(): bool {
-    return $this->isRoot;
+    return $this->parent == '/';
   }
 
 }

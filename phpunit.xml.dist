@@ -3,6 +3,10 @@
   <php>
     <ini name="error_reporting" value="32767"/>
     <ini name="memory_limit" value="-1"/>
+    <env name="SYNCOPE_USER" value="${authorisation.server.username}"/>
+    <env name="SYNCOPE_PASSWORD" value="${authorisation.server.password}"/>
+    <env name="SYNCOPE_ENDPOINT" value="${authorisation.server.endpoint}"/>
+    <env name="SYNCOPE_REALM_NAME" value="${authorisation.server.site_realm_name}"/>
     <env name="SIMPLETEST_IGNORE_DIRECTORIES" value="${drupal.root}"/>
     <env name="SIMPLETEST_BASE_URL" value="${drupal.base_url}"/>
     <env name="SIMPLETEST_DB" value="mysql://${drupal.database.user}:${drupal.database.password}@${drupal.database.host}:${drupal.database.port}/${drupal.database.name}"/>

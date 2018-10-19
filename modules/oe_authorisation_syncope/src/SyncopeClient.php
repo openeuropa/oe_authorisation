@@ -21,6 +21,8 @@ use OpenEuropa\SyncopePhpClient\Api\AnyObjectsApi;
 use OpenEuropa\SyncopePhpClient\Api\GroupsApi;
 use OpenEuropa\SyncopePhpClient\Api\RealmsApi;
 use OpenEuropa\SyncopePhpClient\Configuration;
+use OpenEuropa\SyncopePhpClient\Model\AnyObjectTO;
+use OpenEuropa\SyncopePhpClient\Model\GroupTO;
 
 /**
  * Service that wraps the Syncope PHP client.
@@ -30,25 +32,14 @@ use OpenEuropa\SyncopePhpClient\Configuration;
 class SyncopeClient {
 
   /**
-   * The identifier to use for retrieving a user by UUID.
+   * The identifier to use for retrieving Syncope objects by UUID.
    */
-  const USER_IDENTIFIER_UUID = 'uuid';
+  const IDENTIFIER_UUID = 'uuid';
 
   /**
-   * The identifier to use for retrieving a user by username.
+   * The identifier to use for retrieving Syncope objects by name.
    */
-  const USER_IDENTIFIER_USERNAME = 'username';
-
-  /**
-   * The identifier to use for retrieving a group by UUID.
-   */
-  const GROUP_IDENTIFIER_UUID = 'uuid';
-
-  /**
-   * The identifier to use for retrieving a group by name.
-   */
-  const GROUP_IDENTIFIER_NAME = 'name';
-
+  const IDENTIFIER_NAME = 'name';
 
   /**
    * The configuration data.
@@ -208,14 +199,15 @@ class SyncopeClient {
     $realm = $this->siteRealm;
 
     $group_name = "$name@$realm";
+    $groupTo = new GroupTO([
+      'realm' => '/' . $this->siteRealm,
+      'name' => $group_name,
+    ]);
 
-    $payload = new \stdClass();
-    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.GroupTO';
-    $payload->realm = '/' . $this->siteRealm;
-    $payload->name = $group_name;
+    $groupTo->setClass('org.apache.syncope.common.lib.to.GroupTO');
 
     try {
-      $response = $api->createGroup($this->syncopeDomain, $payload);
+      $response = $api->createGroup($this->syncopeDomain, $groupTo);
     }
     catch (\Exception $e) {
       $this->logger->error(sprintf('There was a problem creating the group %s: %s.', $group_name, $e->getMessage()));
@@ -246,9 +238,9 @@ class SyncopeClient {
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeGroupException
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeGroupNotFoundException
    */
-  public function getGroup(string $identifier, $identifier_type = self::GROUP_IDENTIFIER_UUID): SyncopeGroup {
+  public function getGroup(string $identifier, $identifier_type = self::IDENTIFIER_UUID): SyncopeGroup {
     $api = new GroupsApi($this->client, $this->configuration);
-    if ($identifier_type === self::GROUP_IDENTIFIER_NAME) {
+    if ($identifier_type === self::IDENTIFIER_NAME) {
       $identifier .= '@' . $this->siteRealm;
     }
 
@@ -264,6 +256,7 @@ class SyncopeClient {
     }
 
     $drupal_name = str_replace('@' . $this->siteRealm, '', $response->name);
+
     return new SyncopeGroup($response->key, $response->name, $drupal_name);
   }
 
@@ -327,22 +320,10 @@ class SyncopeClient {
       $realm = '/';
     }
 
-    $payload = new \stdClass();
-    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.AnyObjectTO';
-    $payload->realm = $realm;
-    $payload->memberships = $memberships;
-    $payload->name = $username;
-    $payload->type = 'OeUser';
-    // @todo move this out of here and set the EULogin ID dynamically.
-    $payload->plainAttrs = [
-      [
-        'schema' => 'eulogin_id',
-        'values' => [$user->getName()],
-      ],
-    ];
+    $anyObjectTo = $this->generateAnyObjectTo($realm, $memberships, $username, $user->getName());
 
     try {
-      $response = $api->createAnyObject($this->syncopeDomain, $payload);
+      $response = $api->createAnyObject($this->syncopeDomain, $anyObjectTo);
     }
     catch (\Exception $e) {
       $this->logger->error(sprintf('There was a problem creating the user %s: %s.', $user->getName(), $e->getMessage()));
@@ -353,18 +334,9 @@ class SyncopeClient {
       $this->logger->error(sprintf('There was a problem creating the user %s.', $user->getName()));
       throw new SyncopeUserException('There was a problem creating the user.');
     }
-
     $object = $response->entity;
-    $memberships = $object->memberships;
-    $groups = [];
-    foreach ($memberships as $membership) {
-      $groups[] = $membership->groupKey;
-    }
 
-    $syncope_user = new SyncopeUser($object->key, $object->name, $groups);
-    $date = new \DateTime($object->lastChangeDate);
-    $syncope_user->setUpdated($date->getTimestamp());
-    return $syncope_user;
+    return $this->processSyncopeUserResponse($object);
   }
 
   /**
@@ -394,23 +366,10 @@ class SyncopeClient {
     }
 
     $username = $user->getName() . '@' . $this->siteRealm;
-    $payload = new \stdClass();
-    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.AnyObjectTO';
-    $payload->realm = '/' . $this->siteRealm;
-    $payload->memberships = $memberships;
-    $payload->name = $username;
-    $payload->type = 'OeUser';
-    $payload->key = $user->getUuid();
-    // @todo move this out of here and set the EULogin ID dynamically.
-    $payload->plainAttrs = [
-      [
-        'schema' => 'eulogin_id',
-        'values' => [$user->getName()],
-      ],
-    ];
+    $anyObjectTo = $this->generateAnyObjectTo('/' . $this->siteRealm, $memberships, $username, $user->getName(), $user->getUuid());
 
     try {
-      $response = $api->updateAnyObject($user->getUuid(), $this->syncopeDomain, $payload);
+      $response = $api->updateAnyObject($user->getUuid(), $this->syncopeDomain, $anyObjectTo);
     }
     catch (\Exception $e) {
       $this->logger->error(sprintf('There was a problem updating the user %s: %s.', $user->getName(), $e->getMessage()));
@@ -421,18 +380,9 @@ class SyncopeClient {
       $this->logger->error(sprintf('There was a problem creating the user %s.', $user->getName()));
       throw new SyncopeUserException('There was a problem updating the user.');
     }
-
     $object = $response->entity;
-    $memberships = $object->memberships;
-    $groups = [];
-    foreach ($memberships as $membership) {
-      $groups[] = $membership->groupKey;
-    }
 
-    $syncope_user = new SyncopeUser($object->key, $object->name, $groups);
-    $date = new \DateTime($object->lastChangeDate);
-    $syncope_user->setUpdated($date->getTimestamp());
-    return $syncope_user;
+    return $this->processSyncopeUserResponse($object);
   }
 
   /**
@@ -449,9 +399,9 @@ class SyncopeClient {
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeUserException
    * @throws \Drupal\oe_authorisation_syncope\Exception\SyncopeUserNotFoundException
    */
-  public function getUser(string $identifier, $identifier_type = self::USER_IDENTIFIER_UUID): SyncopeUser {
+  public function getUser(string $identifier, $identifier_type = self::IDENTIFIER_UUID): SyncopeUser {
     $api = new AnyObjectsApi($this->client, $this->configuration);
-    if ($identifier_type === self::USER_IDENTIFIER_USERNAME) {
+    if ($identifier_type === self::IDENTIFIER_NAME) {
       $identifier .= '@' . $this->siteRealm;
     }
 
@@ -473,16 +423,7 @@ class SyncopeClient {
       throw new SyncopeUserNotFoundException('The user was found but is in the wrong realm.');
     }
 
-    $memberships = $response->memberships;
-    $groups = [];
-    foreach ($memberships as $membership) {
-      $groups[] = $membership->groupKey;
-    }
-
-    $syncope_user = new SyncopeUser($response->key, $response->name, $groups);
-    $date = new \DateTime($response->lastChangeDate);
-    $syncope_user->setUpdated($date->getTimestamp());
-    return $syncope_user;
+    return $this->processSyncopeUserResponse($response);
   }
 
   /**
@@ -533,16 +474,7 @@ class SyncopeClient {
 
     $users = [];
     foreach ($response->result as $object) {
-      $memberships = $object->memberships;
-      $groups = [];
-      foreach ($memberships as $membership) {
-        $groups[] = $membership->groupKey;
-      }
-
-      $syncope_user = new SyncopeUser($object->key, $object->name, $groups);
-      $date = new \DateTime($object->lastChangeDate);
-      $syncope_user->setUpdated($date->getTimestamp());
-      $users[] = $syncope_user;
+      $users[] = $this->processSyncopeUserResponse($object);
     }
 
     return $users;
@@ -619,7 +551,6 @@ class SyncopeClient {
       throw new SyncopeUserException('The root user is missing. We cannot add a global role.');
     }
 
-    // @todo check if the role is set already.
     $api = new AnyObjectsApi($this->client, $this->configuration);
 
     $memberships = [];
@@ -630,23 +561,10 @@ class SyncopeClient {
       ];
     }
 
-    $payload = new \stdClass();
-    $payload->{'@class'} = 'org.apache.syncope.common.lib.to.AnyObjectTO';
-    $payload->realm = '/';
-    $payload->memberships = $memberships;
-    $payload->name = $root_user->getName();
-    $payload->type = 'OeUser';
-    $payload->key = $root_user->getUuid();
-    // @todo move this out of here and set the EULogin ID dynamically.
-    $payload->plainAttrs = [
-      [
-        'schema' => 'eulogin_id',
-        'values' => [$root_user->getName()],
-      ],
-    ];
+    $anyObjectTo = $this->generateAnyObjectTo('/', $memberships, $root_user->getName(), $root_user->getName(), $root_user->getUuid());
 
     try {
-      $response = $api->updateAnyObject($root_user->getUuid(), $this->syncopeDomain, $payload);
+      $response = $api->updateAnyObject($root_user->getUuid(), $this->syncopeDomain, $anyObjectTo);
     }
     catch (\Exception $e) {
       $this->logger->error(sprintf('There was a problem updating the user %s: %s.', $user->getName(), $e->getMessage()));
@@ -657,6 +575,69 @@ class SyncopeClient {
       $this->logger->error(sprintf('There was a problem creating the user %s.', $user->getName()));
       throw new SyncopeUserException('There was a problem updating the user.');
     }
+  }
+
+  /**
+   * Generates a AnyObjectTo object ready to be saved to Syncope.
+   *
+   * @param string $realm
+   *   The target realm.
+   * @param array $memberships
+   *   The memberships the object will have.
+   * @param string $name
+   *   The name of the object.
+   * @param string $eulogin
+   *   The associated eulogin username.
+   * @param string $key
+   *   A unique identifier key.
+   *
+   * @return \OpenEuropa\SyncopePhpClient\Model\AnyObjectTO
+   *   An AnyObjectTO object ready to be saved into Syncope.
+   */
+  protected function generateAnyObjectTo(string $realm, array $memberships, string $name, string $eulogin, string $key = ''): AnyObjectTO {
+    $anyObjectTo = new AnyObjectTO([
+      'realm' => $realm,
+      'memberships' => $memberships,
+      'name' => $name,
+      'type' => 'OeUser',
+      // @todo move this out of here and set the EULogin ID dynamically.
+      'plainAttrs' => [
+        [
+          'schema' => 'eulogin_id',
+          'values' => [$eulogin],
+        ],
+      ],
+    ]);
+
+    if (!empty($key)) {
+      $anyObjectTo->setKey($key);
+    }
+    $anyObjectTo->setClass('org.apache.syncope.common.lib.to.AnyObjectTO');
+
+    return $anyObjectTo;
+  }
+
+  /**
+   * Processes a user CRUD response from Syncope into a SyncopeUser object.
+   *
+   * @param \OpenEuropa\SyncopePhpClient\Model\AnyObjectTO|\stdClass $object
+   *   The response object.
+   *
+   * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser
+   *   An updated SyncopeUser object.
+   */
+  protected function processSyncopeUserResponse(\stdClass $object): SyncopeUser {
+    $memberships = $object->memberships;
+    $groups = [];
+    foreach ($memberships as $membership) {
+      $groups[] = $membership->groupKey;
+    }
+
+    $syncope_user = new SyncopeUser($object->key, $object->name, $groups);
+    $date = new \DateTime($object->lastChangeDate);
+    $syncope_user->setUpdated($date->getTimestamp());
+
+    return $syncope_user;
   }
 
 }
