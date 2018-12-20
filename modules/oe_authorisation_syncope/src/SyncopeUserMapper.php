@@ -161,8 +161,8 @@ class SyncopeUserMapper {
     catch (\Exception $e) {
       if ($e instanceof SyncopeUserNotFoundException || $e instanceof SyncopeUserException) {
         $this->logger->info('The user that logged in could not be found in Syncope: ' . $user->id());
-        // If the user doesn't exist, we remove its roles in case it had any just
-        // to prevent them from potentially accessing forbidden things.
+        // If the user doesn't exist, we remove its roles in case it had any
+        // just to prevent them from potentially accessing forbidden things.
         $user->set('roles', $roles);
         return;
       }
