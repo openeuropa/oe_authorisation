@@ -30,7 +30,6 @@ services:
     image: apache/syncope:2.1.1
     ports:
       - "18080:8080"
-    restart: always
     environment:
       DBMS: mysql
       DB_URL: jdbc:mysql://mysql:3306/syncope?characterEncoding=UTF-8&relaxAutoCommit=true&useSSL=false
@@ -46,7 +45,6 @@ services:
     image: apache/syncope-console:2.1.1
     ports:
       - "28080:8080"
-    restart: always
     environment:
       CORE_SCHEME: http
       CORE_HOST: syncope
