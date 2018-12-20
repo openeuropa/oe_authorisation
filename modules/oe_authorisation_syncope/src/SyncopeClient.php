@@ -498,10 +498,6 @@ class SyncopeClient {
       $response = $api->searchAnyObject($this->syncopeDomain, 1, 5, NULL, NULL, NULL, (string) $fiql);
     }
     catch (\Exception $e) {
-      if ($e->getCode() == 0) {
-        throw new SyncopeDownException('Syncope server is not reachable.');
-      }
-
       throw new SyncopeUserException(sprintf('There was a problem querying the user %s: %s', $eu_login, $e->getMessage()));
     }
 
