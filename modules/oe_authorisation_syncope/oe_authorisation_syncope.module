@@ -19,13 +19,16 @@ use Drupal\user\UserInterface;
  * Implements hook_entity_presave().
  */
 function oe_authorisation_syncope_entity_presave(EntityInterface $entity) {
+
   if ($entity instanceof RoleInterface) {
-    \Drupal::service('oe_authorisation_syncope.role_mapper')->preSave($entity);
+    \Drupal::service('oe_authorisation_syncope.role_mapper')
+      ->preSave($entity);
     return;
   }
 
   if ($entity instanceof UserInterface) {
-    \Drupal::service('oe_authorisation_syncope.user_mapper')->preSave($entity);
+    \Drupal::service('oe_authorisation_syncope.user_mapper')
+      ->preSave($entity);
     return;
   }
 }
