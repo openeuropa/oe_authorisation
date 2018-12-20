@@ -20,6 +20,10 @@ use Drupal\user\UserInterface;
  */
 function oe_authorisation_syncope_entity_presave(EntityInterface $entity) {
 
+  if (oe_authorisation_syncope_disabled()) {
+    return;
+  }
+
   if ($entity instanceof RoleInterface) {
     \Drupal::service('oe_authorisation_syncope.role_mapper')
       ->preSave($entity);
@@ -37,6 +41,11 @@ function oe_authorisation_syncope_entity_presave(EntityInterface $entity) {
  * Implements hook_entity_predelete().
  */
 function oe_authorisation_syncope_entity_predelete(EntityInterface $entity) {
+
+  if (oe_authorisation_syncope_disabled()) {
+    return;
+  }
+
   if ($entity instanceof RoleInterface) {
     \Drupal::service('oe_authorisation_syncope.role_mapper')->preDelete($entity);
     return;
@@ -59,6 +68,11 @@ function oe_authorisation_syncope_user_login($account) {
  * Implements hook_ENTITY_TYPE_storage_load() for the User entity type.
  */
 function oe_authorisation_syncope_user_storage_load(array $entities) {
+
+  if (oe_authorisation_syncope_disabled()) {
+    return;
+  }
+
   foreach ($entities as $entity) {
     \Drupal::service('oe_authorisation_syncope.user_mapper')->load($entity);
   }
@@ -92,6 +106,11 @@ function oe_authorisation_syncope_entity_base_field_info(EntityTypeInterface $en
  * an up-to-date status of the roles as they are in Syncope.
  */
 function oe_authorisation_syncope_form_user_form_alter(&$form, FormStateInterface $form_state): void {
+
+  if (oe_authorisation_syncope_disabled()) {
+    return;
+  }
+
   /** @var \Drupal\user\ProfileForm $profile_form */
   $profile_form = $form_state->getBuildInfo()['callback_object'];
   /** @var \Drupal\user\UserInterface $user */
@@ -115,5 +134,16 @@ function oe_authorisation_syncope_form_user_form_alter(&$form, FormStateInterfac
   catch (SyncopeUserException $e) {
     \Drupal::messenger()->addError('There is a problem with the authorisation service. User roles cannot be updated.');
     $form['account']['roles']['#disabled'] = TRUE;
+  }
+}
+
+/**
+ * Checks if Syncope integration is disabled by config override.
+ */
+function oe_authorisation_syncope_disabled() {
+  $oe_authorisation_syncope_settings = \Drupal::config('oe_authorisation_syncope.settings');
+
+  if (!empty($oe_authorisation_syncope_settings->get('disabled'))) {
+    return $oe_authorisation_syncope_settings->get('disabled');
   }
 }
