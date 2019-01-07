@@ -68,5 +68,5 @@ Permissions associated with roles are exclusively managed by Drupal and can vary
 The module can be enabled without the need to interact with Syncope by setting the following setting. This allow for testing the associated website without the need to uninstall the module in cases where syncope server is not reachable.
 
 ```
-$config['oe_authorisation_syncope.settings']['disabled'] = TRUE;
+$settings['syncope_client_disabled'] = TRUE;
 ```
