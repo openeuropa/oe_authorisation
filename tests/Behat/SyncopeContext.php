@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Drupal\Tests\oe_authorisation\Behat;
 
 use Behat\Behat\Hook\Scope\AfterScenarioScope;
+use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\DrupalExtension\Context\RawDrupalContext;
 use Drupal\oe_authorisation_syncope\Syncope\SyncopeGroup;
@@ -46,6 +47,26 @@ class SyncopeContext extends RawDrupalContext {
    * @var \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser[]
    */
   protected $syncopeUsers = [];
+
+  /**
+   * The config context.
+   *
+   * @var \Drupal\DrupalExtension\Context\ConfigContext
+   */
+  protected $configContext;
+
+  /**
+   * Gathers some other contexts.
+   *
+   * @param \Behat\Behat\Hook\Scope\BeforeScenarioScope $scope
+   *   The before scenario scope.
+   *
+   * @BeforeScenario
+   */
+  public function gatherContexts(BeforeScenarioScope $scope) {
+    $environment = $scope->getEnvironment();
+    $this->configContext = $environment->getContext('Drupal\DrupalExtension\Context\ConfigContext');
+  }
 
   /**
    * Returns the Syncope client.
@@ -325,14 +346,33 @@ class SyncopeContext extends RawDrupalContext {
    * @param \Behat\Behat\Hook\Scope\AfterScenarioScope $afterScenarioScope
    *   The scope.
    *
-   * @throws \Exception
-   *
    * @AfterScenario
    */
-  public function cleanUpSyncopeUsers(AfterScenarioScope $afterScenarioScope): void {
+  public function cleanUpSyncope(AfterScenarioScope $afterScenarioScope): void {
     foreach ($this->syncopeUsers as $user) {
       $this->getSyncopeClient()->deleteUser($user->getUuid());
     }
+  }
+
+  /**
+   * Simulates Syncope going down.
+   *
+   * @Given Syncope goes down
+   */
+  public function syncopeGoesDown(): void {
+    \Drupal::service('module_installer')->install(['oe_authorisation_syncope_down']);
+  }
+
+  /**
+   * Simulates Syncope coming back up.
+   *
+   * Cannot put this in an after scenario hook because other such hooks may fire
+   * before it which need Syncope up.
+   *
+   * @Given Syncope (is) (comes back) up
+   */
+  public function syncopeComesUp(): void {
+    \Drupal::service('module_installer')->uninstall(['oe_authorisation_syncope_down']);
   }
 
   /**

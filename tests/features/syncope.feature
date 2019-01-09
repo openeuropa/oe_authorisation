@@ -37,6 +37,24 @@ Feature: Syncope integration
       # Global role.
       | Support Engineer | Site Manager     |
 
+  Scenario Outline: When Syncope is down, users should log in without any roles
+    Given users:
+      | name  | mail              |
+      | Kevin | Kevin@example.com |
+    And the user "Kevin" does not have the role "<role>" in Drupal
+    And the user "Kevin" gets the role "<role>" in Syncope
+    And Syncope goes down
+    And I am logged in as "Kevin"
+    Then the user "Kevin" should not have the role "<role>" in Drupal
+    And Syncope comes back up
+
+    Examples:
+      | role             |
+      # Regular role.
+      | Site Manager     |
+      # Global role.
+      | Support Engineer |
+
   Scenario: Users created in Drupal should be mapped in Syncope with the correct roles
     Given users:
       | name  | mail              | roles                |
@@ -70,3 +88,21 @@ Feature: Syncope integration
     And I go to "/admin/people"
     And I click "Edit" in the "Kevin" row
     Then the "Site Manager" checkbox should be checked
+
+    Given Syncope goes down
+    And I go to "/admin/people"
+    And I click "Edit" in the "Kevin" row
+    Then the "Site Manager" checkbox should be unchecked
+    And the "Site Manager" role checkbox should be disabled
+    And Syncope comes back up
+
+  Scenario: When Syncope is down, user roles should not be changeable
+    Given I am logged in as a user with the "administer users, administer permissions" permissions
+    And Syncope goes down
+    And I go to "/user"
+    And I click "Edit"
+    Then I should see "Syncope server is not reachable."
+    And the "Support Engineer" role checkbox should be disabled
+    And the "Editor" role checkbox should be disabled
+    And the "Site Manager" role checkbox should be disabled
+    And Syncope comes back up

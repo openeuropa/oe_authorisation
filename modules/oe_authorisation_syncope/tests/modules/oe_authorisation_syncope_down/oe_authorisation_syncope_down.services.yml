@@ -1,0 +1,6 @@
+services:
+  oe_authorisation_syncope_down.client_middleware:
+    class: Drupal\oe_authorisation_syncope_down\SyncopeDownMiddleware
+    arguments: ['@config.factory']
+    tags:
+      - { name: http_client_middleware }
