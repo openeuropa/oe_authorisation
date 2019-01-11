@@ -50,7 +50,7 @@ class SyncopeExceptionSubscriber implements EventSubscriberInterface {
    * @param \Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent $event
    *   The exception event.
    */
-  public function handleSyncopeDownException(GetResponseForExceptionEvent $event) {
+  public function handleSyncopeDownException(GetResponseForExceptionEvent $event): void {
     $exception = $event->getException();
     if (!$this->isSyncopeDownException($exception)) {
       return;
@@ -74,7 +74,7 @@ class SyncopeExceptionSubscriber implements EventSubscriberInterface {
    * @return bool
    *   Whether we should treat this as a Syncope down situation.
    */
-  protected function isSyncopeDownException(\Exception $exception) {
+  protected function isSyncopeDownException(\Exception $exception): bool {
     if ($exception instanceof SyncopeDownException) {
       return TRUE;
     }

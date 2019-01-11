@@ -33,7 +33,7 @@ class SyncopeDownMiddleware {
   }
 
   /**
-   * HTTP middleware that returns pre-saved data for AV Portal requests.
+   * HTTP middleware that simulates down of Syncope service.
    */
   public function __invoke() {
     return function ($handler) {
