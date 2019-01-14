@@ -10,13 +10,13 @@ Feature: User authorisation
     Then I should not be able to access the page
 
     Examples:
-      | path            |
-      | admin           |
-      | admin/config    |
-      | admin/content   |
-      | admin/people    |
-      | admin/structure |
-      | node/add        |
+      | path                    |
+      | the Administration page |
+      | the Configuration page  |
+      | the Content page        |
+      | the People page         |
+      | the Structure page      |
+      | the Add content page    |
 
   Scenario Outline: Site Managers can access certain administration pages
     Given I am logged in as a user with the "site_manager" role
@@ -24,11 +24,11 @@ Feature: User authorisation
     Then I should be able to access the page
 
     Examples:
-      | path                |
-      | admin/people        |
-      | admin/people/create |
-      | admin/reports/dblog |
-      | admin/content       |
+      | path                         |
+      | the People page              |
+      | the Add user page            |
+      | the Recent log messages page |
+      | the Content page             |
 
   Scenario Outline: Site Managers cannot access administration pages that change
     major configuration
@@ -37,12 +37,12 @@ Feature: User authorisation
     Then I should not be able to access the page
 
     Examples:
-      | path                         |
-      | admin/modules                |
-      | admin/appearance             |
-      | admin/config/people/accounts |
-      | admin/structure/block        |
-      | admin/structure/types/add    |
+      | path                      |
+      | the Extend page           |
+      | the Appearance page       |
+      | the Account settings page |
+      | the Block layout page     |
+      | the Add content type page |
 
   Scenario Outline: Support Engineers can access some administration pages
     Given I am logged in as a user with the global "support_engineer" role
@@ -50,10 +50,10 @@ Feature: User authorisation
     Then I should be able to access the page
 
     Examples:
-      | path                |
-      | admin/config        |
-      | admin/reports/dblog |
-      | admin/content       |
+      | path                         |
+      | the Configuration page       |
+      | the Recent log messages page |
+      | the Content page             |
 
   Scenario Outline: Support Engineers cannot access user management related
     administration pages
@@ -62,9 +62,9 @@ Feature: User authorisation
     Then I should not be able to access the page
 
     Examples:
-      | path                |
-      | admin/people        |
-      | admin/people/create |
+      | path              |
+      | the People page   |
+      | the Add user page |
 
   Scenario Outline: Editors can access content related pages
     Given I am logged in as a user with the "editor" role
@@ -72,8 +72,8 @@ Feature: User authorisation
     Then I should be able to access the page
 
     Examples:
-      | path          |
-      | admin/content |
+      | path             |
+      | the Content page |
 
   Scenario Outline: Editors cannot access administration pages
     Given I am logged in as a user with the "editor" role
@@ -81,9 +81,9 @@ Feature: User authorisation
     Then I should not be able to access the page
 
     Examples:
-      | path                  |
-      | admin/people          |
-      | admin/people/create   |
-      | admin/structure/types |
-      | admin/reports/status  |
-      | admin/modules         |
+      | path                   |
+      | the People page        |
+      | the Add user page      |
+      | the Content types page |
+      | the Status report page |
+      | the Extend page        |

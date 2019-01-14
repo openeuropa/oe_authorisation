@@ -8,6 +8,25 @@ default:
         - Drupal\DrupalExtension\Context\ConfigContext
         - Drupal\Tests\oe_authorisation\Behat\FeatureContext
         - Drupal\Tests\oe_authorisation\Behat\SyncopeContext
+        - OpenEuropa\Behat\TransformationContext:
+            pages:
+              Administration: 'admin'
+              Configuration: 'admin/config'
+              Content: 'admin/content'
+              People: 'admin/people'
+              Structure: 'admin/structure'
+              Structure: 'admin/structure'
+              Add content: 'node/add'
+              Add user: 'admin/people/create'
+              Recent log messages: 'admin/reports/dblog'
+              Extend: 'admin/modules'
+              Appearance: 'admin/appearance'
+              Account settings: 'admin/config/people/accounts'
+              Block layout: 'admin/structure/block'
+              Add content type: 'admin/structure/types/add'
+              Content types: 'admin/structure/types'
+              Status report: 'admin/reports/status'
+              User: 'user'
   extensions:
     Behat\MinkExtension:
       goutte: ~
