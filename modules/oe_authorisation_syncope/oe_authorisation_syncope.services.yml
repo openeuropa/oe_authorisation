@@ -8,3 +8,9 @@ services:
   oe_authorisation_syncope.user_mapper:
     class: Drupal\oe_authorisation_syncope\SyncopeUserMapper
     arguments: ['@oe_authorisation_syncope.client', '@oe_authorisation_syncope.role_mapper', '@logger.factory', '@entity_type.manager']
+  oe_authorisation_syncope.subscriber:
+    class: Drupal\oe_authorisation_syncope\EventSubscriber\SyncopeExceptionSubscriber
+    arguments:
+      - '@messenger'
+    tags:
+      - {name: event_subscriber}

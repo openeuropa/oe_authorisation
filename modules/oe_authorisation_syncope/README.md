@@ -64,3 +64,9 @@ Upon logging in on any Drupal site, this global role is then assigned to the use
 ### Permissions
 Permissions associated with roles are exclusively managed by Drupal and can vary from site to site.
 
+### Disabling syncope
+The module can be enabled without the need to interact with Syncope by setting the following setting. This allows to test the associated website without the need to uninstall the module in cases where syncope server is not reachable.
+
+```
+$settings['syncope_client_disabled'] = TRUE;
+```

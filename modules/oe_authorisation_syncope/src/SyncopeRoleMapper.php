@@ -74,6 +74,10 @@ class SyncopeRoleMapper {
    *   The user role.
    */
   public function preSave(RoleInterface $role): void {
+    if (!$this->client::isEnabled()) {
+      return;
+    }
+
     // We do not map global roles as they are created during provisioning or
     // directly in the Syncope service.
     if ($role->getThirdPartySetting('oe_authorisation', 'global', FALSE)) {
@@ -103,6 +107,10 @@ class SyncopeRoleMapper {
    *   The user role.
    */
   public function preDelete(RoleInterface $role): void {
+    if (!$this->client::isEnabled()) {
+      return;
+    }
+
     $uuid = $this->getRoleUuid($role);
     if (!$uuid) {
       $this->logger->info('A role was deleted but had no UUID to delete its Syncope counterpart: ' . $role->id());

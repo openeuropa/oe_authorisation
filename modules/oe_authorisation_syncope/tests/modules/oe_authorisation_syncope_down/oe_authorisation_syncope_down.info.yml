@@ -1,0 +1,4 @@
+name: OE Authorisation Syncope Down
+description: Simulates Syncope being down
+core: 8.x
+type: module

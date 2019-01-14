@@ -5,7 +5,9 @@ declare(strict_types = 1);
 namespace Drupal\Tests\oe_authorisation\Behat;
 
 use Behat\Behat\Hook\Scope\AfterScenarioScope;
+use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Site\Settings;
 use Drupal\DrupalExtension\Context\RawDrupalContext;
 use Drupal\oe_authorisation_syncope\Syncope\SyncopeGroup;
 use Drupal\oe_authorisation_syncope\Syncope\SyncopeUser;
@@ -46,6 +48,26 @@ class SyncopeContext extends RawDrupalContext {
    * @var \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser[]
    */
   protected $syncopeUsers = [];
+
+  /**
+   * The config context.
+   *
+   * @var \Drupal\DrupalExtension\Context\ConfigContext
+   */
+  protected $configContext;
+
+  /**
+   * Gathers some other contexts.
+   *
+   * @param \Behat\Behat\Hook\Scope\BeforeScenarioScope $scope
+   *   The before scenario scope.
+   *
+   * @BeforeScenario
+   */
+  public function gatherContexts(BeforeScenarioScope $scope): void {
+    $environment = $scope->getEnvironment();
+    $this->configContext = $environment->getContext('Drupal\DrupalExtension\Context\ConfigContext');
+  }
 
   /**
    * Returns the Syncope client.
@@ -325,14 +347,35 @@ class SyncopeContext extends RawDrupalContext {
    * @param \Behat\Behat\Hook\Scope\AfterScenarioScope $afterScenarioScope
    *   The scope.
    *
-   * @throws \Exception
-   *
    * @AfterScenario
    */
-  public function cleanUpSyncopeUsers(AfterScenarioScope $afterScenarioScope): void {
+  public function cleanUpSyncope(AfterScenarioScope $afterScenarioScope): void {
     foreach ($this->syncopeUsers as $user) {
       $this->getSyncopeClient()->deleteUser($user->getUuid());
     }
+  }
+
+  /**
+   * Simulates Syncope going down.
+   *
+   * @Given Syncope goes down
+   */
+  public function syncopeGoesDown(): void {
+    $this->enableTestModuleScanning();
+    \Drupal::service('module_installer')->install(['oe_authorisation_syncope_down']);
+  }
+
+  /**
+   * Simulates Syncope coming back up.
+   *
+   * Cannot put this in an after scenario hook because other such hooks may fire
+   * before it which need Syncope up.
+   *
+   * @Given Syncope (is) (comes back) up
+   */
+  public function syncopeComesUp(): void {
+    $this->enableTestModuleScanning();
+    \Drupal::service('module_installer')->uninstall(['oe_authorisation_syncope_down']);
   }
 
   /**
@@ -420,6 +463,20 @@ class SyncopeContext extends RawDrupalContext {
     }
 
     return $uuids;
+  }
+
+  /**
+   * Enables the test module scanning.
+   *
+   * OE Authorisation Syncope Down is a test module so it cannot be enabled by
+   * default as it is not being scanned. By changing the settings temporarily,
+   * we can allow that to happen.
+   */
+  protected function enableTestModuleScanning(): void {
+    $settings = Settings::getAll();
+    $settings['extension_discovery_scan_tests'] = TRUE;
+    // We just have to re-instantiate the singleton.
+    new Settings($settings);
   }
 
 }

@@ -6,6 +6,8 @@ namespace Drupal\oe_authorisation_syncope;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\oe_authorisation_syncope\Exception\SyncopeDownException;
+use Drupal\oe_authorisation_syncope\Exception\SyncopeUserException;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeUserNotFoundException;
 use Drupal\oe_authorisation_syncope\Syncope\SyncopeUser;
 use Drupal\user\UserInterface;
@@ -72,6 +74,10 @@ class SyncopeUserMapper {
    *   The user entity.
    */
   public function preSave(UserInterface $user): void {
+    if (!$this->client::isEnabled()) {
+      return;
+    }
+
     if ($user->isNew()) {
       $this->mapNewUser($user);
       return;
@@ -90,6 +96,10 @@ class SyncopeUserMapper {
    *   The user.
    */
   public function preDelete(UserInterface $user): void {
+    if (!$this->client::isEnabled()) {
+      return;
+    }
+
     $uuid = $user->get('syncope_uuid')->value;
     if (!$uuid) {
       // We do nothing here, not even log because users without a UUID should
@@ -126,6 +136,10 @@ class SyncopeUserMapper {
    *   The user.
    */
   public function login(UserInterface $user): void {
+    if (!$this->client::isEnabled()) {
+      return;
+    }
+
     $storage = $this->entityTypeManager->getStorage('user');
     $storage->resetCache([$user->id()]);
     $user = $storage->load($user->id());
@@ -143,6 +157,10 @@ class SyncopeUserMapper {
    *   The user.
    */
   public function load(UserInterface $user): void {
+    if (!$this->client::isEnabled()) {
+      return;
+    }
+
     $uuid = $user->get('syncope_uuid')->value;
     if (!$uuid) {
       // We do nothing here, not even log.
@@ -157,12 +175,16 @@ class SyncopeUserMapper {
       // Currently the Eu Login ID is the username in Drupal.
       $groups = $this->client->getAllUserGroups($user->label());
     }
-    catch (SyncopeUserNotFoundException $e) {
-      $this->logger->info('The user that logged in could not be found in Syncope: ' . $user->id());
-      // If the user doesn't exist, we remove its roles in case it had any just
-      // to prevent them from potentially accessing forbidden things.
-      $user->set('roles', $roles);
-      return;
+    catch (\Exception $e) {
+      if ($e instanceof SyncopeUserNotFoundException || $e instanceof SyncopeUserException || $e instanceof SyncopeDownException) {
+        $this->logger->info('The user that logged in could not be found in Syncope: ' . $user->id());
+        // If the user doesn't exist, we remove its roles in case it had any
+        // just to prevent them from potentially accessing forbidden things.
+        $user->set('roles', $roles);
+        return;
+      }
+
+      throw $e;
     }
 
     foreach ($groups as $group) {

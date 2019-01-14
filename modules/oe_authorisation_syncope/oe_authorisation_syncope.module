@@ -11,6 +11,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\oe_authorisation_syncope\Exception\SyncopeDownException;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeUserException;
 use Drupal\user\RoleInterface;
 use Drupal\user\UserInterface;
@@ -18,14 +19,16 @@ use Drupal\user\UserInterface;
 /**
  * Implements hook_entity_presave().
  */
-function oe_authorisation_syncope_entity_presave(EntityInterface $entity) {
+function oe_authorisation_syncope_entity_presave(EntityInterface $entity): void {
   if ($entity instanceof RoleInterface) {
-    \Drupal::service('oe_authorisation_syncope.role_mapper')->preSave($entity);
+    \Drupal::service('oe_authorisation_syncope.role_mapper')
+      ->preSave($entity);
     return;
   }
 
   if ($entity instanceof UserInterface) {
-    \Drupal::service('oe_authorisation_syncope.user_mapper')->preSave($entity);
+    \Drupal::service('oe_authorisation_syncope.user_mapper')
+      ->preSave($entity);
     return;
   }
 }
@@ -33,7 +36,7 @@ function oe_authorisation_syncope_entity_presave(EntityInterface $entity) {
 /**
  * Implements hook_entity_predelete().
  */
-function oe_authorisation_syncope_entity_predelete(EntityInterface $entity) {
+function oe_authorisation_syncope_entity_predelete(EntityInterface $entity): void {
   if ($entity instanceof RoleInterface) {
     \Drupal::service('oe_authorisation_syncope.role_mapper')->preDelete($entity);
     return;
@@ -48,14 +51,14 @@ function oe_authorisation_syncope_entity_predelete(EntityInterface $entity) {
 /**
  * Implements hook_user_login().
  */
-function oe_authorisation_syncope_user_login($account) {
+function oe_authorisation_syncope_user_login(UserInterface $account): void {
   \Drupal::service('oe_authorisation_syncope.user_mapper')->login($account);
 }
 
 /**
  * Implements hook_ENTITY_TYPE_storage_load() for the User entity type.
  */
-function oe_authorisation_syncope_user_storage_load(array $entities) {
+function oe_authorisation_syncope_user_storage_load(array $entities): void {
   foreach ($entities as $entity) {
     \Drupal::service('oe_authorisation_syncope.user_mapper')->load($entity);
   }
@@ -64,7 +67,7 @@ function oe_authorisation_syncope_user_storage_load(array $entities) {
 /**
  * Implements hook_entity_base_field_info().
  */
-function oe_authorisation_syncope_entity_base_field_info(EntityTypeInterface $entity_type) {
+function oe_authorisation_syncope_entity_base_field_info(EntityTypeInterface $entity_type): ?array {
   if ($entity_type->id() !== 'user') {
     return NULL;
   }
@@ -88,7 +91,11 @@ function oe_authorisation_syncope_entity_base_field_info(EntityTypeInterface $en
  * When someone wants to change the roles of a user, we need to ensure we have
  * an up-to-date status of the roles as they are in Syncope.
  */
-function oe_authorisation_syncope_form_user_form_alter(&$form, FormStateInterface $form_state): void {
+function oe_authorisation_syncope_form_user_form_alter(array &$form, FormStateInterface $form_state): void {
+  if (!\Drupal::service('oe_authorisation_syncope.client')::isEnabled()) {
+    return;
+  }
+
   /** @var \Drupal\user\ProfileForm $profile_form */
   $profile_form = $form_state->getBuildInfo()['callback_object'];
   /** @var \Drupal\user\UserInterface $user */
@@ -111,6 +118,10 @@ function oe_authorisation_syncope_form_user_form_alter(&$form, FormStateInterfac
   }
   catch (SyncopeUserException $e) {
     \Drupal::messenger()->addError('There is a problem with the authorisation service. User roles cannot be updated.');
+    $form['account']['roles']['#disabled'] = TRUE;
+  }
+  catch (SyncopeDownException $e) {
+    \Drupal::messenger()->addError($e->getMessage());
     $form['account']['roles']['#disabled'] = TRUE;
   }
 }

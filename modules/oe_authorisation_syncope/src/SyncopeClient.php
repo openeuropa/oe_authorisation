@@ -7,7 +7,9 @@ namespace Drupal\oe_authorisation_syncope;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Site\Settings;
 use Drupal\Core\State\StateInterface;
+use Drupal\oe_authorisation_syncope\Exception\SyncopeDownException;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeException;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeGroupException;
 use Drupal\oe_authorisation_syncope\Exception\SyncopeGroupNotFoundException;
@@ -178,6 +180,10 @@ class SyncopeClient {
       return new SyncopeRealm($object->key, $object->name, $object->fullPath, $object->parent);
     }
     catch (\Exception $e) {
+      if ($e->getCode() === 0) {
+        throw new SyncopeDownException('Syncope server is not reachable.');
+      }
+
       $this->logger->error('The site realm could not be retrieved from Syncope. An error has occurred: ' . $e->getMessage());
       throw new SyncopeException('There was a problem getting the site realm from Syncope: ' . $e->getMessage());
     }
@@ -210,6 +216,10 @@ class SyncopeClient {
       $response = $api->createGroup($this->syncopeDomain, $groupTo);
     }
     catch (\Exception $e) {
+      if ($e->getCode() === 0) {
+        throw new SyncopeDownException('Syncope server is not reachable.');
+      }
+
       $this->logger->error(sprintf('There was a problem creating the group %s: %s.', $group_name, $e->getMessage()));
       throw new SyncopeGroupException('There was a problem creating the group.');
     }
@@ -248,7 +258,10 @@ class SyncopeClient {
       $response = $api->readGroup($identifier, $this->syncopeDomain);
     }
     catch (\Exception $e) {
-      if ($e->getCode() === 404) {
+      if ($e->getCode() === 0) {
+        throw new SyncopeDownException('Syncope server is not reachable.');
+      }
+      elseif ($e->getCode() === 404) {
         throw new SyncopeGroupNotFoundException('The group was not found.');
       }
       $this->logger->error(sprintf('There was a problem retrieving the group %s: %s.', $identifier, $e->getMessage()));
@@ -283,6 +296,11 @@ class SyncopeClient {
       $api->deleteGroup($uuid, $this->syncopeDomain);
     }
     catch (\Exception $e) {
+
+      if ($e->getCode() == 0) {
+        throw new SyncopeDownException('Syncope server is not reachable.');
+      }
+
       $this->logger->error(sprintf('There was a problem deleting the group %s: %s.', $uuid, $e->getMessage()));
       throw new SyncopeGroupException('There was a problem deleting the group.');
     }
@@ -326,6 +344,10 @@ class SyncopeClient {
       $response = $api->createAnyObject($this->syncopeDomain, $anyObjectTo);
     }
     catch (\Exception $e) {
+      if ($e->getCode() === 0) {
+        throw new SyncopeDownException('Syncope server is not reachable.');
+      }
+
       $this->logger->error(sprintf('There was a problem creating the user %s: %s.', $user->getName(), $e->getMessage()));
       throw new SyncopeUserException('There was a problem creating the user.');
     }
@@ -372,6 +394,10 @@ class SyncopeClient {
       $response = $api->updateAnyObject($user->getUuid(), $this->syncopeDomain, $anyObjectTo);
     }
     catch (\Exception $e) {
+      if ($e->getCode() === 0) {
+        throw new SyncopeDownException('Syncope server is not reachable.');
+      }
+
       $this->logger->error(sprintf('There was a problem updating the user %s: %s.', $user->getName(), $e->getMessage()));
       throw new SyncopeUserException('There was a problem updating the user.');
     }
@@ -409,7 +435,10 @@ class SyncopeClient {
       $response = $api->readAnyObject($identifier, $this->syncopeDomain);
     }
     catch (\Exception $e) {
-      if ($e->getCode() === 404) {
+      if ($e->getCode() === 0) {
+        throw new SyncopeDownException('Syncope server is not reachable.');
+      }
+      elseif ($e->getCode() === 404) {
         throw new SyncopeUserNotFoundException('The user was not found.');
       }
       throw new SyncopeUserException(sprintf('There was a problem retrieving the user %s: %s', $identifier, $e->getMessage()));
@@ -465,6 +494,9 @@ class SyncopeClient {
       $response = $api->searchAnyObject($this->syncopeDomain, 1, 5, NULL, NULL, NULL, (string) $fiql);
     }
     catch (\Exception $e) {
+      if ($e->getCode() === 0) {
+        throw new SyncopeDownException('Syncope server is not reachable.');
+      }
       throw new SyncopeUserException(sprintf('There was a problem querying the user %s: %s', $eu_login, $e->getMessage()));
     }
 
@@ -525,6 +557,10 @@ class SyncopeClient {
       $api->deleteAnyObject($identifier, $this->syncopeDomain);
     }
     catch (\Exception $e) {
+      if ($e->getCode() === 0) {
+        throw new SyncopeDownException('Syncope server is not reachable.');
+      }
+
       $this->logger->error(sprintf('There was a problem deleting the user %s: %s.', $identifier, $e->getMessage()));
       throw new SyncopeUserException('There was a problem deleting the user.');
     }
@@ -567,6 +603,10 @@ class SyncopeClient {
       $response = $api->updateAnyObject($root_user->getUuid(), $this->syncopeDomain, $anyObjectTo);
     }
     catch (\Exception $e) {
+      if ($e->getCode() === 0) {
+        throw new SyncopeDownException('Syncope server is not reachable.');
+      }
+
       $this->logger->error(sprintf('There was a problem updating the user %s: %s.', $user->getName(), $e->getMessage()));
       throw new SyncopeUserException('There was a problem updating the user.');
     }
@@ -575,6 +615,14 @@ class SyncopeClient {
       $this->logger->error(sprintf('There was a problem creating the user %s.', $user->getName()));
       throw new SyncopeUserException('There was a problem updating the user.');
     }
+  }
+
+  /**
+   * Checks if calls to Syncope are enabled.
+   */
+  public static function isEnabled(): bool {
+    $disabled = Settings::get('syncope_client_disabled', FALSE);
+    return $disabled ? FALSE : TRUE;
   }
 
   /**
