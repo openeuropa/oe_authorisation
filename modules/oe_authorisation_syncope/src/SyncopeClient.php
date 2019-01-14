@@ -620,7 +620,7 @@ class SyncopeClient {
   /**
    * Checks if calls to Syncope are enabled.
    */
-  public static function isEnabled() {
+  public static function isEnabled(): bool {
     $disabled = Settings::get('syncope_client_disabled', FALSE);
     return $disabled ? FALSE : TRUE;
   }

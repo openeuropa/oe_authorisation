@@ -64,7 +64,7 @@ class SyncopeContext extends RawDrupalContext {
    *
    * @BeforeScenario
    */
-  public function gatherContexts(BeforeScenarioScope $scope) {
+  public function gatherContexts(BeforeScenarioScope $scope): void {
     $environment = $scope->getEnvironment();
     $this->configContext = $environment->getContext('Drupal\DrupalExtension\Context\ConfigContext');
   }
