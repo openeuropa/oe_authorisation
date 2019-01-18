@@ -10,13 +10,13 @@ Feature: User authorisation
     Then I should not be able to access the page
 
     Examples:
-      | path                    |
-      | the Administration page |
-      | the Configuration page  |
-      | the Content page        |
-      | the People page         |
-      | the Structure page      |
-      | the Add content page    |
+      | path                                  |
+      | the administration page               |
+      | the site configuration page           |
+      | the content administration page       |
+      | the user administration page          |
+      | the site building administration page |
+      | the content creation page             |
 
   Scenario Outline: Site Managers can access certain administration pages
     Given I am logged in as a user with the "site_manager" role
@@ -24,11 +24,11 @@ Feature: User authorisation
     Then I should be able to access the page
 
     Examples:
-      | path                         |
-      | the People page              |
-      | the Add user page            |
-      | the Recent log messages page |
-      | the Content page             |
+      | path                            |
+      | the user administration page    |
+      | the user account creation page  |
+      | the recent log messages page    |
+      | the content administration page |
 
   Scenario Outline: Site Managers cannot access administration pages that change
     major configuration
@@ -38,11 +38,11 @@ Feature: User authorisation
 
     Examples:
       | path                      |
-      | the Extend page           |
-      | the Appearance page       |
-      | the Account settings page |
-      | the Block layout page     |
-      | the Add content type page |
+      | the modules administration page           |
+      | the site appearance administration page       |
+      | the user account settings page |
+      | the block layout administration page     |
+      | the content type creation page |
 
   Scenario Outline: Support Engineers can access some administration pages
     Given I am logged in as a user with the global "support_engineer" role
@@ -50,10 +50,10 @@ Feature: User authorisation
     Then I should be able to access the page
 
     Examples:
-      | path                         |
-      | the Configuration page       |
-      | the Recent log messages page |
-      | the Content page             |
+      | path                            |
+      | the site configuration page     |
+      | the recent log messages page    |
+      | the content administration page |
 
   Scenario Outline: Support Engineers cannot access user management related
     administration pages
@@ -62,9 +62,9 @@ Feature: User authorisation
     Then I should not be able to access the page
 
     Examples:
-      | path              |
-      | the People page   |
-      | the Add user page |
+      | path                           |
+      | the user administration page   |
+      | the user account creation page |
 
   Scenario Outline: Editors can access content related pages
     Given I am logged in as a user with the "editor" role
@@ -72,8 +72,8 @@ Feature: User authorisation
     Then I should be able to access the page
 
     Examples:
-      | path             |
-      | the Content page |
+      | path                            |
+      | the content administration page |
 
   Scenario Outline: Editors cannot access administration pages
     Given I am logged in as a user with the "editor" role
@@ -81,9 +81,9 @@ Feature: User authorisation
     Then I should not be able to access the page
 
     Examples:
-      | path                   |
-      | the People page        |
-      | the Add user page      |
-      | the Content types page |
-      | the Status report page |
-      | the Extend page        |
+      | path                                  |
+      | the user administration page          |
+      | the user account creation page        |
+      | the content types administration page |
+      | the site status page                  |
+      | the modules administration page       |
