@@ -66,7 +66,7 @@ Feature: Syncope integration
       | name  | mail              | roles                |
       | Kevin | Kevin@example.com | Editor, Site Manager |
     And I am logged in as a user with the "administer users, administer permissions" permissions
-    And I go to "/admin/people"
+    And I go to "the user administration page"
     And I click "Edit" in the "Kevin" row
     And I uncheck the box "Site Manager"
     And I press "Save"
@@ -75,7 +75,7 @@ Feature: Syncope integration
 
   Scenario: Global roles should not be assignable in Drupal
     Given I am logged in as a user with the "administer users, administer permissions" permissions
-    And I go to "/user"
+    And I go to "the user account page"
     And I click "Edit"
     Then the "Support Engineer" role checkbox should be disabled
 
@@ -85,12 +85,12 @@ Feature: Syncope integration
       | name  | mail              |
       | Kevin | Kevin@example.com |
     And the user "Kevin" gets the role "Site Manager" in Syncope
-    And I go to "/admin/people"
+    And I go to "the user administration page"
     And I click "Edit" in the "Kevin" row
     Then the "Site Manager" checkbox should be checked
 
     Given Syncope goes down
-    And I go to "/admin/people"
+    And I go to "the user administration page"
     And I click "Edit" in the "Kevin" row
     Then the "Site Manager" checkbox should be unchecked
     And the "Site Manager" role checkbox should be disabled
@@ -99,7 +99,7 @@ Feature: Syncope integration
   Scenario: When Syncope is down, user roles should not be changeable
     Given I am logged in as a user with the "administer users, administer permissions" permissions
     And Syncope goes down
-    And I go to "/user"
+    And I go to "the user account page"
     And I click "Edit"
     Then I should see "Syncope server is not reachable."
     And the "Support Engineer" role checkbox should be disabled
