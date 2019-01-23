@@ -64,4 +64,4 @@ pipeline:
     group: test
     image: fpfis/httpd-php-dev:7.1
     commands:
-    - ./vendor/bin/behat
+    - ./vendor/bin/behat --strict
