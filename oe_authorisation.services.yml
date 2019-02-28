@@ -1,0 +1,5 @@
+services:
+  oe_authorisation.route_subscriber:
+    class: Drupal\oe_authorisation\Routing\RouteSubscriber
+    tags:
+      - { name: event_subscriber }

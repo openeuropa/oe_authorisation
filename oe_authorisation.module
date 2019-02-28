@@ -8,6 +8,7 @@
 declare(strict_types = 1);
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Site\Settings;
 use Drupal\user\RoleInterface;
 
 /**
@@ -29,4 +30,68 @@ function oe_authorisation_form_user_form_alter(&$form, FormStateInterface $form_
       $form['account']['roles'][$machine]['#disabled'] = TRUE;
     }
   }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the permissions form.
+ */
+function oe_authorisation_form_user_admin_permissions_alter(&$form, FormStateInterface $form_state): void {
+
+  // If role CRUD isn't disable don't change it.
+  if (Settings::get('oe_authorisation_role_crud_enabled', FALSE)) {
+    return;
+  }
+
+  // Disable submit button.
+  $form['actions']['submit']['#access'] = FALSE;
+
+  // @TODO: Change this
+  $form['warning'] = [
+    '#markup' => t('Role management is disabled in EWCMS. Roles and associated permissions are only changeable by code'),
+    '#weight' => -50,
+  ];
+
+  // Get actual roles and permissions and disable the checkbox.
+  $role_names = $form['role_names']['#value'];
+
+  // @TODO: Change this
+  $permissions_handler = Drupal::service('user.permissions');
+  $permissions = $permissions_handler->getPermissions();
+
+  $permissions_by_provider = [];
+  foreach ($permissions as $permission_name => $permission) {
+    $permissions_by_provider[$permission['provider']][$permission_name] = $permission;
+  }
+
+  foreach ($role_names as $rid => $name) {
+    foreach ($permissions_by_provider as $provider => $permissions) {
+      foreach ($permissions as $perm => $permisssion) {
+        $form['permissions'][$perm][$rid]['#attributes']['disabled'] = TRUE;
+      }
+    }
+  }
+
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the roles form.
+ */
+function oe_authorisation_form_user_admin_roles_form_alter(&$form, FormStateInterface $form_state): void {
+
+  // If role CRUD isn't disable don't change it.
+  if (Settings::get('oe_authorisation_role_crud_enabled', FALSE)) {
+    return;
+  }
+
+  if (empty($form['entities'])) {
+    return;
+  }
+
+  foreach ($form['entities'] as &$entity) {
+    if (is_array($entity) && isset($entity['operations']) && is_array($entity['operations'])) {
+      unset($entity['operations']['data']['#links']['edit']);
+      unset($entity['operations']['data']['#links']['delete']);
+    }
+  }
+
 }
