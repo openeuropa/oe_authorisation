@@ -8,6 +8,7 @@
 declare(strict_types = 1);
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\user\RoleInterface;
 
@@ -37,7 +38,7 @@ function oe_authorisation_form_user_form_alter(&$form, FormStateInterface $form_
  */
 function oe_authorisation_form_user_admin_permissions_alter(&$form, FormStateInterface $form_state): void {
 
-  // If role CRUD isn't disable don't change it.
+  // If role CRUD isn't disabled don't change it.
   if (Settings::get('oe_authorisation_role_crud_enabled', FALSE)) {
     return;
   }
@@ -45,16 +46,12 @@ function oe_authorisation_form_user_admin_permissions_alter(&$form, FormStateInt
   // Disable submit button.
   $form['actions']['submit']['#access'] = FALSE;
 
-  // @TODO: Change this
-  $form['warning'] = [
-    '#markup' => t('Role management is disabled in EWCMS. Roles and associated permissions are only changeable by code'),
-    '#weight' => -50,
-  ];
+  // Adds warning message.
+  \Drupal::messenger()->addMessage('Role management is disabled in EWCMS. Roles and associated permissions are only changeable by code.', MessengerInterface::TYPE_WARNING);
 
   // Get actual roles and permissions and disable the checkbox.
   $role_names = $form['role_names']['#value'];
 
-  // @TODO: Change this
   $permissions_handler = Drupal::service('user.permissions');
   $permissions = $permissions_handler->getPermissions();
 
@@ -78,7 +75,7 @@ function oe_authorisation_form_user_admin_permissions_alter(&$form, FormStateInt
  */
 function oe_authorisation_form_user_admin_roles_form_alter(&$form, FormStateInterface $form_state): void {
 
-  // If role CRUD isn't disable don't change it.
+  // If role CRUD isn't disabled don't change it.
   if (Settings::get('oe_authorisation_role_crud_enabled', FALSE)) {
     return;
   }
