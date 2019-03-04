@@ -1,4 +1,4 @@
-@api @hernani
+@api
 Feature: User authorisation
   In order to protect the integrity of the website
   As a product owner
