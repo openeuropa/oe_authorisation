@@ -2,7 +2,14 @@
 
 The OpenEuropa Authorisation module offers default features related to user authorisation for the OpenEuropa project.
 
-It provides the following user roles:
+The module automatically disable Roles/Permissions CRUD UI to guarantee configuration related with roles is not changeable via the UI.
+This functionality can be restored by setting the following settingcan be enabled without the need to interact with Syncope by setting the following setting. 
+
+```
+$settings['oe_authorisation_role_crud_enabled'] = TRUE;
+```
+
+The module provides the following user roles:
 
 * Site Manager (general administrative permissions)
 * Support Engineer (general administrative permissions without user management)
