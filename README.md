@@ -2,8 +2,8 @@
 
 The OpenEuropa Authorisation module offers default features related to user authorisation for the OpenEuropa project.
 
-The module automatically disable Roles/Permissions CRUD UI to guarantee configuration related with roles is not changeable via the UI.
-This functionality can be restored by setting the following settingcan be enabled without the need to interact with Syncope by setting the following setting. 
+The module automatically disables the Roles/Permissions CRUD UI to guarantee that any configuration related with roles is not changeable via the UI.
+This functionality can be restored without the need to interact with Syncope by configuring the following setting in your Drupal site. 
 
 ```
 $settings['oe_authorisation_role_crud_enabled'] = TRUE;
