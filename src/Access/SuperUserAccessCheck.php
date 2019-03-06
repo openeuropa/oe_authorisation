@@ -18,7 +18,7 @@ class SuperUserAccessCheck implements AccessInterface {
    * Checks access.
    *
    * @param \Drupal\Core\Session\AccountInterface $account
-   *   The logged in user key.
+   *   The user account to check.
    *
    * @return \Drupal\Core\Access\AccessResultInterface
    *   The access result.

@@ -14,7 +14,7 @@ use Drupal\user\RoleInterface;
 /**
  * Implements hook_form_FORM_ID_alter().
  *
- * Alter the Account form to disable role options.
+ * Alter the Account form to disable assignment of global roles.
  */
 function oe_authorisation_form_user_form_alter(&$form, FormStateInterface $form_state): void {
   // Find the global user roles.
@@ -35,22 +35,24 @@ function oe_authorisation_form_user_form_alter(&$form, FormStateInterface $form_
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implements hook_form_FORM_ID_alter() for the permissions form.
  *
- * Alter the permissions form to disable all options.
+ * Alter the permissions form to disable all options to perform any change.
+ * Form and route is still active to guarantee the current permissions can be
+ * seen.
  */
 function oe_authorisation_form_user_admin_permissions_alter(&$form, FormStateInterface $form_state): void {
 
   // Don't disable for uid=1.
   $user = \Drupal::currentUser();
-  if ($user->id() == 1) {
+  if ($user->id() === 1) {
     return;
   }
 
   // Disable submit button.
   $form['actions']['submit']['#access'] = FALSE;
 
-  // Adds warning message.
+  // Add warning message.
   \Drupal::messenger()->addMessage(t('Role management is disabled in EWCMS. Roles and associated permissions are only changeable through code.'), MessengerInterface::TYPE_WARNING);
 
   // Get actual roles and permissions and disable the checkbox.
@@ -75,7 +77,7 @@ function oe_authorisation_form_user_admin_permissions_alter(&$form, FormStateInt
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implements hook_form_FORM_ID_alter() for the roles form.
  *
  * Alter the roles form to prevent role editing and deletion.
  */
@@ -93,8 +95,14 @@ function oe_authorisation_form_user_admin_roles_form_alter(&$form, FormStateInte
 
   foreach ($form['entities'] as &$entity) {
     if (is_array($entity) && isset($entity['operations']) && is_array($entity['operations'])) {
-      unset($entity['operations']['data']['#links']['edit']);
-      unset($entity['operations']['data']['#links']['delete']);
+
+      if (isset($entity['operations']['data']['#links']['edit'])) {
+        unset($entity['operations']['data']['#links']['edit']);
+      }
+
+      if (isset($entity['operations']['data']['#links']['delete'])) {
+        unset($entity['operations']['data']['#links']['delete']);
+      }
     }
   }
 

@@ -1,5 +1,5 @@
 @api
-Feature: User authorisation
+Feature: Roles UI not available
   In order to protect the integrity of the website
   As a product owner
   I want to make sure roles cannot be created/edited/deleted by anyone in the website

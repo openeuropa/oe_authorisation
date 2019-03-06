@@ -18,19 +18,14 @@ class RouteSubscriber extends RouteSubscriberBase {
    */
   protected function alterRoutes(RouteCollection $collection) {
 
-    // If role CRUD isn't disable don't change it.
-    if (Settings::get('oe_authorisation_role_crud_enabled', FALSE)) {
-      return;
-    }
-
-    $paths = [
+    $routes = [
       'user.role_add',
       'entity.user_role.edit_form',
       'entity.user_role.delete_form',
     ];
 
-    foreach ($paths as $path) {
-      $route = $collection->get($path);
+    foreach ($routes as $route_name) {
+      $route = $collection->get($route_name);
       $route->setRequirement('_superuser_access_check', 'TRUE');
     }
   }
