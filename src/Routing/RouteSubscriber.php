@@ -31,7 +31,7 @@ class RouteSubscriber extends RouteSubscriberBase {
 
     foreach ($paths as $path) {
       $route = $collection->get($path);
-      $route->setRequirement('_access', 'FALSE');
+      $route->setRequirement('_superuser_access_check', 'TRUE');
     }
   }
 

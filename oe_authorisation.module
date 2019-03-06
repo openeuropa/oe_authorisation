@@ -9,7 +9,6 @@ declare(strict_types = 1);
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\Core\Site\Settings;
 use Drupal\user\RoleInterface;
 
 /**
@@ -42,8 +41,9 @@ function oe_authorisation_form_user_form_alter(&$form, FormStateInterface $form_
  */
 function oe_authorisation_form_user_admin_permissions_alter(&$form, FormStateInterface $form_state): void {
 
-  // If role CRUD isn't disabled don't change it.
-  if (Settings::get('oe_authorisation_role_crud_enabled', FALSE)) {
+  // Don't disable for uid=1.
+  $user = \Drupal::currentUser();
+  if ($user->id() == 1) {
     return;
   }
 
@@ -81,8 +81,9 @@ function oe_authorisation_form_user_admin_permissions_alter(&$form, FormStateInt
  */
 function oe_authorisation_form_user_admin_roles_form_alter(&$form, FormStateInterface $form_state): void {
 
-  // If role CRUD isn't disabled don't change it.
-  if (Settings::get('oe_authorisation_role_crud_enabled', FALSE)) {
+  // Don't disable for uid=1.
+  $user = \Drupal::currentUser();
+  if ($user->id() == 1) {
     return;
   }
 

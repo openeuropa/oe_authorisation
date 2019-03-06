@@ -3,3 +3,7 @@ services:
     class: Drupal\oe_authorisation\Routing\RouteSubscriber
     tags:
       - { name: event_subscriber }
+  oe_authorisation.superuser_access_checker:
+    class: Drupal\oe_authorisation\Access\SuperUserAccessCheck
+    tags:
+      - { name: access_check, applies_to: _superuser_access_check }
