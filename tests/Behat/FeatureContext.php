@@ -13,6 +13,49 @@ use Drupal\DrupalExtension\Context\DrupalContext;
 class FeatureContext extends DrupalContext {
 
   /**
+   * Checks the user cannot edit permissions.
+   *
+   * @Then I should not be able to edit permissions
+   */
+  public function iShouldNotBeAbleToEditPermissions() {
+    $session = $this->getSession();
+
+    // No permissions checkbox are enabled.
+    $permissions_checkboxes = $session->getPage()->findAll('css', '#user-admin-permissions .form-checkbox');
+    foreach ($permissions_checkboxes as $checkbox) {
+      if ($checkbox->getAttribute('disabled') !== 'disabled') {
+        throw new \Exception(sprintf('%s role checkbox is not disabled.', $checkbox->getId()));
+      }
+    }
+
+    // Submit button not present.
+    if ($session->getPage()->hasField('edit-submit')) {
+      throw new \Exception(sprintf('Permissions can be saved. Submit button present.'));
+    }
+  }
+
+  /**
+   * Checks the user cannot edit roles.
+   *
+   * @Then I should not be able to edit or delete roles
+   */
+  public function iShouldNotBeAbleToEditOrDeleteRoles() {
+    $session = $this->getSession();
+
+    // No roles are editable or removable.
+    $roles_actions = $session->getPage()->findAll('css', '#user-admin-roles-form .dropbutton-action');
+    foreach ($roles_actions as $role_action) {
+      if (in_array('edit', $role_action->getClasses())) {
+        throw new \Exception(sprintf('It is possible to edit a role'));
+      }
+      if (in_array('delete', $role_action->getClasses())) {
+        throw new \Exception(sprintf('It is possible to delete a role'));
+      }
+    }
+
+  }
+
+  /**
    * Checks that a 200 OK response occurred.
    *
    * @Then I should be able to access the page
