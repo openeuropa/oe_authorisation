@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace Drupal\oe_authorisation\Routing;
 
 use Drupal\Core\Routing\RouteSubscriberBase;
-use Drupal\Core\Site\Settings;
 use Symfony\Component\Routing\RouteCollection;
 
 /**
