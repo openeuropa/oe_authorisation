@@ -1,0 +1,4 @@
+roleassign_roles:
+  editor: editor
+  support_engineer: '0'
+  site_manager: '0'

@@ -16,6 +16,7 @@ permissions:
   - 'administer menu'
   - 'administer nodes'
   - 'administer users'
+  - 'assign roles'
   - 'bypass node access'
   - 'cancel account'
   - 'change own username'
