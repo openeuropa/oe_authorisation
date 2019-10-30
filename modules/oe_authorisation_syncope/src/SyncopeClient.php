@@ -668,7 +668,7 @@ class SyncopeClient {
   /**
    * Processes a user CRUD response from Syncope into a SyncopeUser object.
    *
-   * @param \OpenEuropa\SyncopePhpClient\Model\AnyObjectTO|\stdClass $object
+   * @param \OpenEuropa\SyncopePhpClient\Model\AnyObjectTO|object $object
    *   The response object.
    *
    * @return \Drupal\oe_authorisation_syncope\Syncope\SyncopeUser
