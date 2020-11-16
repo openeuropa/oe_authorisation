@@ -4,11 +4,11 @@ workspace:
 
 services:
   web:
-    image: fpfis/httpd-php-ci:7.1
+    image: registry.fpfis.eu/fpfis/httpd-php:7.3-ci
     environment:
     - DOCUMENT_ROOT=/test/oe_authorisation
   mysql:
-    image: percona/percona-server:5.6
+    image: registry.fpfis.eu/fpfis/sql:percona-5.7
     environment:
     - MYSQL_ALLOW_EMPTY_PASSWORD=yes
     - MYSQL_DATABASE=syncope
@@ -31,37 +31,37 @@ services:
 pipeline:
   composer-install:
     group: prepare
-    image: fpfis/httpd-php-ci:7.1
+    image: registry.fpfis.eu/fpfis/httpd-php:7.3-ci
     volumes:
     - /cache:/cache
     commands:
     - composer install --ansi --no-suggest --no-progress
 
   syncope-provisioning:
-    image: fpfis/httpd-php-ci:7.1
+    image: registry.fpfis.eu/fpfis/httpd-php:7.3-ci
     commands:
     - ./vendor/bin/run oe-authorisation-service:setup
     - ./vendor/bin/run oe-authorisation-service:site-setup --site_id=sitea
 
   site-install:
-    image: fpfis/httpd-php-ci:7.1
+    image: registry.fpfis.eu/fpfis/httpd-php:7.3-ci
     commands:
     - ./vendor/bin/run drupal:site-install
 
   grumphp:
     group: test
-    image: fpfis/httpd-php-ci:7.1
+    image: registry.fpfis.eu/fpfis/httpd-php:7.3-ci
     commands:
     - ./vendor/bin/grumphp run
 
   phpunit:
     group: test
-    image: fpfis/httpd-php-ci:7.1
+    image: registry.fpfis.eu/fpfis/httpd-php:7.3-ci
     commands:
     - ./vendor/bin/phpunit
 
   behat:
     group: test
-    image: fpfis/httpd-php-ci:7.1
+    image: registry.fpfis.eu/fpfis/httpd-php:7.3-ci
     commands:
     - ./vendor/bin/behat --strict
